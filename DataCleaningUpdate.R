@@ -1,45 +1,92 @@
-library(tidyverse)
-library(readxl)
+require(tidyverse)
+require(readxl)
+require(cowplot)
 
 # Laura's effort
-library(tidyr)
 
 # Reshape the data
 
 lysimetry_data = read_csv("Lysimetry_data.csv")
 lysimetry_data = lysimetry_data[1:89,] #for some reason we're getting a ton of blank lines at the end, cutting them here.
+treatments = read_csv("Treatment_key.csv") %>%
+  mutate(ID = Plant_ID)
 
 # Reshape the data (thanks Chat GPT for the regex and tidyverse wizardry!)
 reshaped_data <- lysimetry_data %>%
   pivot_longer(cols = -ID,
                names_to = c(".value", "date"),
-               names_pattern = "(sample|Time)(.*)")
+               names_pattern = "(sample|Time)(.*)") %>%
+  drop_na()
+
+reshaped_data = mutate(reshaped_data,
+                       newtime = parse_date_time(reshaped_data$Time, "mdy_HM"))
+# A couple of the times are hours minutes AND seconds, dealing
+# with this below. (A savvier coder would use tidyverse for this
+# but LB is faster with base R.)
+for (i in 1:nrow(reshaped_data)) {
+  if (is.na(reshaped_data$newtime[i])) {
+    reshaped_data$newtime[i] = parse_date_time(reshaped_data$Time[i], "mdy_HMS")
+  }
+}
 
 reshaped_data <- reshaped_data %>%
-  arrange(ID, desc(Time))
+  select(ID, sample, newtime) %>%
+  arrange(ID, desc(newtime))
 
 last_three <- reshaped_data %>%
   group_by(ID) %>%
-  drop_na() %>%
   slice_head(n = 3) %>%
   ungroup()
 
 last_and_third_to_last <- reshaped_data %>%
   group_by(ID) %>%
-  drop_na() %>%
   slice(c(1,3)) %>% # keep just last and third to last measurement
+  ungroup()
+
+last_and_second_to_last <- reshaped_data %>%
+  group_by(ID) %>%
+  slice(c(3,2)) %>% # keep just last and second to last measurement
   ungroup()
 
 # now working to calculate hourly loss
 hourly_loss <- last_and_third_to_last %>%
+  arrange(ID, desc(newtime)) %>%
   group_by(ID) %>%
-  mutate(mass_loss =)
+  summarize(massdiff_g = first(sample) - last(sample), # generates some confusing negative values, what's up?
+            timediff = first(newtime) - last(newtime)) %>%
+  mutate(mass_per_day = massdiff_g/as.numeric(timediff)) %>%
+  mutate(mass_per_hr = mass_per_day/24) #24 hrs per day
 
+# So, it looks like the last and third to last measurements do
+# NOT consistently capture the final 48 hrs. 
+# will need to fix this.
+# for now, what does it look like?
 
+# Adding in treatment info for plotting
 
-# Calculate hourly water loss last two days before harvest
+alltogether = left_join(hourly_loss, treatments)
 
+# Test boxplot
 
+testplot = ggplot(data = alltogether) +
+  theme_classic() +
+  theme(axis.text.x = element_text(face = "italic")) +
+  geom_boxplot(outlier.shape = NA, aes(x = Species, y = mass_per_hr, fill = Colonized, color = Treatment)) +
+  geom_jitter(aes(x = Species, y = mass_per_hr, fill = Colonized)) +
+  xlab("Fungi") + 
+  ylab("Transpiration rate (water loss g/hr)") +
+  scale_x_discrete(breaks=c("NM","SP", "TC", "RP", "R+S", "R+T"),
+                   labels=c("No fungi",
+                            "Suillus ponderosus", 
+                            "Truncocolumella citrina",
+                            "Rhizopogon evadens",
+                            "R. evadens and S. ponderosus",
+                            "R. evadens and T. citrina"))
+
+testplot
+# Preliminary thoughts:
+# all these negative rates don't make sense
+# a bunch of these plants were watered
 
 # Tutor's effort
 
