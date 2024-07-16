@@ -1,4 +1,3 @@
-setwd("/Users/demoriegalarza/Desktop/R Tutoring")
 library(tidyverse)
 library(readxl)
 LysimetryID <- read_excel("Lysimetry+Data+for+R.xlsx", range = "A1:A90")
