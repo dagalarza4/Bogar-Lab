@@ -71,9 +71,10 @@ alltogether = left_join(hourly_loss, treatments)
 testplot = ggplot(data = alltogether) +
   theme_classic() +
   theme(axis.text.x = element_text(face = "italic")) +
-  geom_boxplot(outlier.shape = NA, aes(x = Species, y = mass_per_hr, fill = Colonized, color = Treatment)) +
-  geom_jitter(aes(x = Species, y = mass_per_hr, fill = Colonized)) +
+  geom_boxplot(outlier.shape = NA, aes(x = Species, y = mass_per_hr, color = Colonized)) +
+  geom_jitter(aes(x = Species, y = mass_per_hr, color = Colonized)) +
   xlab("Fungi") + 
+  facet_grid(. ~ Treatment)
   ylab("Transpiration rate (water loss g/hr)") +
   scale_x_discrete(breaks=c("NM","SP", "TC", "RP", "R+S", "R+T"),
                    labels=c("No fungi",
@@ -85,8 +86,10 @@ testplot = ggplot(data = alltogether) +
 
 testplot
 # Preliminary thoughts:
-# all these negative rates don't make sense
-# a bunch of these plants were watered
+# I think I calculated these rates backwards?
+# all the mass losses for drought are negative.
+# scale_x_discrete not working with the faceted plot
+# would need to redo axis labels for publication
 
 # Tutor's effort
 
