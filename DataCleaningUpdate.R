@@ -1,12 +1,54 @@
 library(tidyverse)
 library(readxl)
+
+# Laura's effort
+library(tidyr)
+
+# Reshape the data
+
+lysimetry_data = read_csv("Lysimetry_data.csv")
+lysimetry_data = lysimetry_data[1:89,] #for some reason we're getting a ton of blank lines at the end, cutting them here.
+
+# Reshape the data (thanks Chat GPT for the regex and tidyverse wizardry!)
+reshaped_data <- lysimetry_data %>%
+  pivot_longer(cols = -ID,
+               names_to = c(".value", "date"),
+               names_pattern = "(sample|Time)(.*)")
+
+reshaped_data <- reshaped_data %>%
+  arrange(ID, desc(Time))
+
+last_three <- reshaped_data %>%
+  group_by(ID) %>%
+  drop_na() %>%
+  slice_head(n = 3) %>%
+  ungroup()
+
+last_and_third_to_last <- reshaped_data %>%
+  group_by(ID) %>%
+  drop_na() %>%
+  slice(c(1,3)) %>% # keep just last and third to last measurement
+  ungroup()
+
+# now working to calculate hourly loss
+hourly_loss <- last_and_third_to_last %>%
+  group_by(ID) %>%
+  mutate(mass_loss =)
+
+
+
+# Calculate hourly water loss last two days before harvest
+
+
+
+# Tutor's effort
+
 LysimetryID <- read_excel("Lysimetry+Data+for+R.xlsx", range = "A1:A90")
 
 LysimetryTime <- read_excel("Lysimetry+Data+for+R.xlsx")%>%
   select(c(contains("Time")))%>%
   mutate(`Time07/11/23`=`Time07/11/23`+4017)
 
-Lysimetry_Data = read_excel("Lysimetry+Data+for+R.xlsx")
 
 # Create a new dataframe to store the differences
 TimeDiff <- data.frame(matrix(NA, nrow = nrow(LysimetryTime), ncol = ncol(LysimetryTime) - 1))
