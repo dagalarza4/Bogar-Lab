@@ -6,6 +6,8 @@ LysimetryTime <- read_excel("Lysimetry+Data+for+R.xlsx")%>%
   select(c(contains("Time")))%>%
   mutate(`Time07/11/23`=`Time07/11/23`+4017)
 
+Lysimetry_Data = read_excel("Lysimetry+Data+for+R.xlsx")
+
 # Create a new dataframe to store the differences
 TimeDiff <- data.frame(matrix(NA, nrow = nrow(LysimetryTime), ncol = ncol(LysimetryTime) - 1))
 
