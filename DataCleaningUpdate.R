@@ -91,6 +91,32 @@ testplot
 # scale_x_discrete not working with the faceted plot
 # would need to redo axis labels for publication
 
+
+# DAG's effort 7/19/24
+library(ggplot2)
+library(dplyr)
+
+# Boxplot
+alltogether$Species <- factor(alltogether$Species, levels = c("NM", "RP", "SP", "TC", "R+S", "S+T"))
+
+
+testplot <- ggplot(data = alltogether) +
+  theme_classic() +
+  theme(axis.text.x = element_text(face = "italic")) +
+  geom_boxplot(aes(x = Species, y = mass_per_hr, color = Colonized), outlier.shape = NA) +
+  geom_jitter(aes(x = Species, y = mass_per_hr, color = Colonized)) +
+  xlab("Fungal Species") + 
+  ylab("Transpiration Rate (water loss g/hr)") +
+  scale_x_discrete(labels = c("NM",
+                              "RP",
+                              "SP", 
+                              "TC",
+                              "R+S",
+                              "S+T")) +
+  facet_grid(. ~ Treatment)
+
+print(testplot)
+
 # Tutor's effort
 
 LysimetryID <- read_excel("Lysimetry+Data+for+R.xlsx", range = "A1:A90")
@@ -186,3 +212,5 @@ ggplot(BoxDS, aes(x=Species,y=Rate,fill=Treatment))+
   geom_boxplot()+
   ylim(0,.25)+
   theme_minimal()
+
+#Trying to commit, will this work?
