@@ -117,6 +117,38 @@ testplot <- ggplot(data = alltogether) +
 
 print(testplot)
 
+#New boxplot changes
+alltogether <- alltogether %>%
+  mutate(Species = case_when(
+    grepl("NM", Species_Treatment) ~ "NM",
+    grepl("RP", Species_Treatment) ~ "RP",
+    grepl("SP", Species_Treatment) ~ "SP",
+    grepl("TC", Species_Treatment) ~ "TC",
+    grepl("R\\+S", Species_Treatment) ~ "R+S",
+    grepl("S\\+T", Species_Treatment) ~ "S+T"
+  ))
+
+alltogether$Species <- factor(alltogether$Species,
+                              levels = c("NM", "RP", "SP", "TC", "R+S", "S+T"))
+
+testplot <- ggplot(data = alltogether) +
+  theme_classic() +
+  theme(axis.text.x = element_text(face = "italic")) +
+  geom_boxplot(aes(x = Species, y = mass_per_hr, color = Treatment), outlier.shape = NA) +
+  geom_jitter(aes(x = Species, y = mass_per_hr, color = Treatment)) +
+  xlab("Fungal Species") + 
+  ylab("Transpiration Rate (water loss g/hr)") +
+  scale_color_manual(name = "Treatment", values = c("control" = "blue", "drought" = "red")) +
+  labs(color = "Treatment")
+
+# Print the updated plot
+print(testplot)
+
+
+
+
+
+
 # Tutor's effort
 
 LysimetryID <- read_excel("Lysimetry+Data+for+R.xlsx", range = "A1:A90")
