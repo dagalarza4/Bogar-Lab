@@ -138,12 +138,58 @@ testplot <- ggplot(data = alltogether) +
   geom_jitter(aes(x = Species, y = mass_per_hr, color = Treatment)) +
   xlab("Fungal Species") + 
   ylab("Transpiration Rate (water loss g/hr)") +
-  scale_color_manual(name = "Treatment", values = c("control" = "blue", "drought" = "red")) +
+  scale_color_manual(name = "Treatment", values = c("control" = "deepskyblue", "drought" = "red")) +
   labs(color = "Treatment")
 
-# Print the updated plot
 print(testplot)
 
+
+##Atempt at finding water loss/hr in positive values
+
+hourly_loss <- last_and_third_to_last %>%
+  arrange(ID, desc(newtime)) %>%
+  group_by(ID) %>%
+  summarize(massdiff_g = last(sample) - first(sample), # Corrected calculation
+            timediff = as.numeric(difftime(first(newtime), last(newtime), units = "hours"))) %>%
+  mutate(mass_per_hr = massdiff_g / timediff) # Directly calculate mass per hour
+
+# Calculate water loss for the last two days before harvest
+last_two_days <- reshaped_data %>%
+  group_by(ID) %>%
+  filter(difftime(max(newtime), newtime, units = "days") <= 2) %>%
+  arrange(ID, desc(newtime))
+
+# Ensure only two measurements are considered per plant
+last_two_measurements <- last_two_days %>%
+  group_by(ID) %>%
+  slice_head(n = 2) %>%
+  ungroup()
+
+hourly_loss <- last_two_measurements %>%
+  arrange(ID, desc(newtime)) %>%
+  group_by(ID) %>%
+  summarize(massdiff_g = last(sample) - first(sample), # Corrected calculation
+            timediff = as.numeric(difftime(first(newtime), last(newtime), units = "hours"))) %>%
+  mutate(mass_per_hr = massdiff_g / timediff)
+
+alltogether <- left_join(hourly_loss, treatments)
+
+alltogether$Species <- factor(alltogether$Species,
+                              levels = c("NM", "RP", "SP", "TC", "R+S", "S+T"))
+
+testplot <- ggplot(data = alltogether) +
+  theme_classic() +
+  theme(axis.text.x = element_text(face = "italic")) +
+  geom_boxplot(aes(x = Species, y = mass_per_hr, color = Treatment), outlier.shape = NA) +
+  geom_jitter(aes(x = Species, y = mass_per_hr, color = Treatment)) +
+  xlab("Fungal Species") + 
+  ylab("Transpiration Rate (water loss g/hr)") +
+  scale_color_manual(name = "Treatment", values = c("control" = "deepskyblue", "drought" = "red")) +
+  labs(color = "Treatment") +
+  geom_hline(yintercept = c(0.05, 0.1, 0.15, 0.2, 0.25), color = "grey", linetype = "solid") +
+  ylim(0, 0.25)
+
+print(testplot)
 
 
 
