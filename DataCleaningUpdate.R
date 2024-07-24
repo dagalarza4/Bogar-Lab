@@ -188,7 +188,7 @@ testplot <- ggplot(data = alltogether) +
   geom_jitter(aes(x = Species, y = mass_per_hr, color = Treatment)) +
   xlab("Fungal Species") + 
   ylab("Transpiration Rate (water loss g/hr)") +
-  scale_color_manual(name = "Treatment", values = c("control" = "deepskyblue", "drought" = "red")) +
+  scale_color_manual(name = "Treatment", values = c("control" = "deepskyblue", "drought" = "tomato1")) +
   labs(color = "Treatment") +
   geom_hline(yintercept = c(0.05, 0.1, 0.15, 0.2, 0.25), color = "grey", linetype = "solid") +
   ylim(0, 0.25)
@@ -428,10 +428,8 @@ timeline_plot <- ggplot(cumulative_usage, aes(x = date, y = total_water, color =
        x = "Date",
        y = "Total Water Usage (g)",
        color = "Treatment") +
-  scale_color_manual(values = c("control" = "deepskyblue", "drought" = "red")) +
+  scale_color_manual(values = c("control" = "deepskyblue", "drought" = "tomato1")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 print(timeline_plot)
-
-colors()
 
