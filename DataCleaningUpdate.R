@@ -428,11 +428,10 @@ timeline_plot <- ggplot(cumulative_usage, aes(x = date, y = total_water, color =
        x = "Date",
        y = "Total Water Usage (g)",
        color = "Treatment") +
+  scale_color_manual(values = c("control" = "deepskyblue", "drought" = "red")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 print(timeline_plot)
 
-
-
-
+colors()
 
