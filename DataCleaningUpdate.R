@@ -2,7 +2,7 @@ require(tidyverse)
 require(readxl)
 require(cowplot)
 
-# Laura's effort
+# Laura's effort####
 
 # Reshape the data
 
@@ -145,7 +145,7 @@ print(testplot)
 
 
 
-### Graph below is best ###
+# DAG's boxplot ####
 
 ##Attempt at finding water loss/hr in positive values 
 #07/21/23
@@ -195,9 +195,6 @@ testplot <- ggplot(data = alltogether) +
 
 print(testplot)
 ### Above graph is best
-
-
-
 
 
 #New attempt with Lysimetry+Info.csv- did not work
@@ -279,7 +276,7 @@ print(testplot)
 
 
 
-# Tutor's effort
+# Tutor's effort ####
 
 LysimetryID <- read_excel("Lysimetry+Data+for+R.xlsx", range = "A1:A90")
 
@@ -303,7 +300,7 @@ TimeDiff <- TimeDiff*24
 # Tests
 sum(TimeDiff < 0, na.rm = TRUE)
 
-# Diff in Amount ####
+# Diff in Amount
 LysimetryMeasure <- read_excel("Lysimetry+Data+for+R.xlsx")%>%
   select(-c( ID,contains("Time")))
 MeasureDiff <- data.frame(matrix(NA, nrow = nrow(LysimetryMeasure), ncol = ncol(LysimetryMeasure) - 1))
@@ -348,7 +345,7 @@ ggplot(RateChange_long, aes(x = Date, y = Rate, group = ID, color = factor(ID)))
   theme_minimal() +
   theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust = 1))
 
-# Boxplot ####
+# Boxplot
 
 Harvest_Data <- read_excel("Harvest Data.xlsx")%>%
   select(Plant_ID,Species,Treatment)
@@ -376,3 +373,66 @@ ggplot(BoxDS, aes(x=Species,y=Rate,fill=Treatment))+
   theme_minimal()
 
 #Trying to commit, will this work?
+
+
+#Timeline of water usage####
+
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidyr)
+library(lubridate)
+
+# Load the data
+days_watered <- read_csv("Days_Watered.csv")
+harvest_days <- read_csv("Harvest_Days.csv")
+
+# Convert HarvestDate to date format
+harvest_days$HarvestDate <- as.Date(harvest_days$HarvestDate, format="%m/%d/%Y")
+
+# Reshape Days_Watered data to long format
+days_watered_long <- days_watered %>%
+  pivot_longer(cols = -ID, names_to = "date", values_to = "water_amount") %>%
+  mutate(date = as.Date(date, format="%m/%d/%Y"))
+
+# Merge with harvest days to filter out data after harvest
+days_watered_filtered <- days_watered_long %>%
+  left_join(harvest_days, by = c("ID" = "Sample")) %>%
+  filter(date <= HarvestDate)
+
+# Load the treatments data
+treatments <- read_csv("Treatment_key.csv") %>%
+  mutate(ID = Plant_ID) # Ensure the column name matches for merging
+
+# Assuming treatments are already loaded and merged into the data
+alltogether <- left_join(days_watered_filtered, treatments, by = "ID")
+
+# Calculate cumulative water usage
+alltogether <- alltogether %>%
+  group_by(ID, Treatment, Species, date) %>%
+  summarize(cumulative_water = sum(water_amount, na.rm = TRUE)) %>%
+  ungroup()
+
+# Summarize data by date and treatment
+cumulative_usage <- alltogether %>%
+  group_by(date, Treatment, Species) %>%
+  summarize(total_water = sum(cumulative_water, na.rm = TRUE)) %>%
+  ungroup()
+
+# Create timeline plot
+timeline_plot <- ggplot(cumulative_usage, aes(x = date, y = total_water, color = Treatment)) +
+  geom_line() +
+  facet_wrap(~Species, scales = "free_y") +
+  theme_classic() +
+  labs(title = "Water Usage Over Time by Treatment and Species",
+       x = "Date",
+       y = "Total Water Usage (g)",
+       color = "Treatment") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(timeline_plot)
+
+
+
+
+
