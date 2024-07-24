@@ -433,3 +433,45 @@ timeline_plot <- ggplot(cumulative_usage, aes(x = date, y = total_water, color =
 
 print(timeline_plot)
 
+#Change to a per-plant water usage metric ####
+library(dplyr)
+
+# Ensure 'date' is included in the merge and calculations
+alltogether <- days_watered_filtered %>%
+  left_join(treatments, by = "ID") %>%
+  group_by(ID, Treatment, Species, date) %>%
+  summarize(cumulative_water = sum(water_amount, na.rm = TRUE), .groups = 'drop')
+
+# Count the number of plants for each treatment on each date
+plant_counts <- days_watered_filtered %>%
+  left_join(treatments, by = "ID") %>%
+  group_by(date, Treatment) %>%
+  summarize(num_plants = n_distinct(ID), .groups = 'drop')
+
+# Ensure 'date' and 'Treatment' are included in the plant_counts data
+alltogether <- alltogether %>%
+  left_join(plant_counts, by = c("date", "Treatment"))
+
+# Calculate average water usage per plant
+average_usage <- alltogether %>%
+  group_by(date, Treatment, Species) %>%
+  summarize(average_water = sum(cumulative_water, na.rm = TRUE) / sum(num_plants, na.rm = TRUE), .groups = 'drop')
+
+print(average_usage)
+
+# Create timeline plot with updated average water usage
+timeline_plot <- ggplot(average_usage, aes(x = date, y = average_water, color = Treatment)) +
+  geom_line() +
+  facet_wrap(~Species, scales = "free_y") +
+  scale_color_manual(values = c("control" = "deepskyblue", "drought" = "red")) +
+  theme_classic() +
+  labs(title = "Average Water Usage Over Time by Treatment and Species",
+       x = "Date",
+       y = "Average Water Usage per Plant (g)",
+       color = "Treatment") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(timeline_plot)
+
+
+# Trying to subtract days watered from water usage
