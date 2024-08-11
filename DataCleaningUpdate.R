@@ -196,7 +196,7 @@ testplot <- ggplot(data = alltogether) +
 print(testplot)
 ### Above graph is best
 
-#8/9 Update
+#8/9 Update ####
 
 require(tidyverse)
 require(readxl)
@@ -556,4 +556,87 @@ timeline_plot <- ggplot(average_usage, aes(x = date, y = average_water, color = 
 print(timeline_plot)
 
 
-# Trying to subtract days watered from water usage
+
+head(days_watered)
+
+
+
+
+
+# 8/9 Update on Timeline Graph
+
+require(tidyverse)
+require(readxl)
+require(cowplot)
+
+# Read in the lysimetry data
+lys_data <- read_csv("Lysimetry_data.csv")
+lys_data <- lys_data[1:89,] # Removing blank lines
+
+# Read in the treatment key and harvest days
+treatments <- read_csv("Treatment_key.csv") %>%
+  mutate(ID = Plant_ID)
+
+harvest_days <- read_csv("Harvest_Days.csv")
+
+# Reshape the lysimetry data
+reshaped_data <- lys_data %>%
+  pivot_longer(cols = -ID,
+               names_to = c(".value", "date"),
+               names_pattern = "(sample|Time)(.*)") %>%
+  drop_na() %>%
+  mutate(newtime = parse_date_time(Time, "mdy_HM"))
+
+# Handling time format discrepancies
+for (i in 1:nrow(reshaped_data)) {
+  if (is.na(reshaped_data$newtime[i])) {
+    reshaped_data$newtime[i] = parse_date_time(reshaped_data$Time[i], "mdy_HMS")
+  }
+}
+
+# Merge reshaped data with harvest days (assuming 'Sample' is the ID in harvest_days)
+reshaped_data <- left_join(reshaped_data, harvest_days, by = c("ID" = "Sample"))
+
+# Convert LastDay1 and LastDay2 to datetime
+reshaped_data <- reshaped_data %>%
+  mutate(
+    LastDay1 = as.POSIXct(LastDay1, format = "%m/%d/%Y %H:%M"),
+    LastDay2 = as.POSIXct(LastDay2, format = "%m/%d/%Y %H:%M")
+  )
+
+# Filter out measurements after the plant's harvest date
+reshaped_data <- reshaped_data %>%
+  filter(newtime <= LastDay1 | is.na(LastDay1))
+
+# Calculate transpiration rates over time for each ID
+transpiration_data <- reshaped_data %>%
+  arrange(ID, newtime) %>%
+  group_by(ID) %>%
+  mutate(
+    time_diff = as.numeric(difftime(newtime, lag(newtime), units = "hours")),
+    mass_diff = lag(sample) - sample,
+    transpiration_rate = mass_diff / time_diff
+  ) %>%
+  ungroup()
+
+# Combine with treatment data
+alltogether <- left_join(transpiration_data, treatments)
+
+# Update species factor levels
+alltogether$Species <- factor(alltogether$Species,
+                              levels = c("NM", "RP", "SP", "TC", "R+S", "S+T"))
+
+# Create the timeline graph
+timeline_plot <- ggplot(data = alltogether) +
+  theme_classic() +
+  theme(axis.text.x = element_text(face = "italic")) +
+  geom_line(aes(x = newtime, y = transpiration_rate, color = Treatment, group = ID)) +
+  facet_wrap(~ Species) +
+  xlab("Date") + 
+  ylab("Transpiration Rate (water loss g/hr)") +
+  scale_color_manual(name = "Treatment", values = c("control" = "deepskyblue", "drought" = "red")) +
+  labs(color = "Treatment") +
+  geom_hline(yintercept = c(0.05, 0.1, 0.15, 0.2, 0.25), color = "grey", linetype = "solid") +
+  ylim(0, 0.25)
+
+print(timeline_plot)
