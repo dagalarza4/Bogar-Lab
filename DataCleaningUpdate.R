@@ -640,3 +640,356 @@ timeline_plot <- ggplot(data = alltogether) +
   ylim(0, 0.25)
 
 print(timeline_plot)
+
+
+
+
+
+
+### DAG's new efforts ####
+
+#Use Harvest Days dates
+
+require(tidyverse)
+require(readxl)
+require(cowplot)
+library(lubridate)
+
+# Read in the lysimetry data and harvest days
+lysimetry_data <- read_csv("Lysimetry_data.csv")
+treatments <- read_csv("Treatment_key.csv") %>%
+  mutate(ID = Plant_ID)
+harvest_days <- read_csv("Harvest_Days.csv")
+
+# Correcting the date format for LastDay1 and LastDay2
+reshaped_data$LastDay1 <- as_date(ymd_hms(reshaped_data$LastDay1, tz = "UTC", quiet = TRUE))
+reshaped_data$LastDay2 <- as_date(ymd_hms(reshaped_data$LastDay2, tz = "UTC", quiet = TRUE))
+
+# Replace the inconsistent time formats with correct ones
+reshaped_data$Time <- gsub("(\\d{1,2}/\\d{1,2}/)\\d{4}", "\\1\\d{2}", reshaped_data$Time)
+
+# Now parse the dates again
+reshaped_data$newtime <- parse_date_time(reshaped_data$Time, orders = c("mdy_HM", "mdy_HMS"))
+
+
+# Filtering the last two days before harvest
+last_two_days_before_harvest <- reshaped_data %>%
+  filter(newtime >= LastDay1 & newtime <= LastDay2)
+
+# Reshape the lysimetry data
+reshaped_data <- lysimetry_data %>%
+  pivot_longer(cols = -ID,
+               names_to = c(".value", "date"),
+               names_pattern = "(sample|Time)(.*)") %>%
+  drop_na() %>%
+  mutate(newtime = parse_date_time(Time, "mdy_HM"))  # Parse time format
+
+# Handling time format discrepancies (add 'HMS' parsing if necessary)
+for (i in 1:nrow(reshaped_data)) {
+  if (is.na(reshaped_data$newtime[i])) {
+    reshaped_data$newtime[i] = parse_date_time(reshaped_data$Time[i], "mdy_HMS")
+  }
+}
+
+# Merge reshaped data with harvest days (adjust the join to match column names)
+reshaped_data <- left_join(reshaped_data, harvest_days, by = c("ID" = "Sample"))
+
+# Convert LastDay1 and LastDay2 to datetime
+reshaped_data <- reshaped_data %>%
+  mutate(
+    LastDay1 = as.POSIXct(LastDay1, format = "%m/%d/%Y"),
+    LastDay2 = as.POSIXct(LastDay2, format = "%m/%d/%Y")
+  )
+
+# Filter the data to only include measurements taken on the last two days before harvest
+last_two_days_before_harvest <- reshaped_data %>%
+  group_by(ID) %>%
+  filter(newtime %in% c(LastDay1, LastDay2)) %>%
+  arrange(ID, desc(newtime)) %>%
+  ungroup()
+
+# Calculate hourly water loss
+hourly_loss <- last_two_days_before_harvest %>%
+  arrange(ID, desc(newtime)) %>%
+  group_by(ID) %>%
+  summarize(
+    massdiff_g = last(sample) - first(sample),  # Calculate water loss
+    timediff = as.numeric(difftime(first(newtime), last(newtime), units = "hours"))  # Time difference in hours
+  ) %>%
+  mutate(mass_per_hr = massdiff_g / timediff) %>%
+  ungroup()
+
+# Combine hourly water loss with treatment data
+alltogether <- left_join(hourly_loss, treatments, by = "ID")
+
+# Update species factor levels
+alltogether$Species <- factor(alltogether$Species,
+                              levels = c("NM", "RP", "SP", "TC", "R+S", "S+T"))
+
+print(head(alltogether))
+
+
+#Debugging
+# Debug the parsing of 'Time' column
+unique(reshaped_data$Time)  # Check the format of times
+
+# Ensure that the date parsing matches the data
+reshaped_data$newtime <- parse_date_time(reshaped_data$Time, orders = c("mdy_HM", "mdy_HMS"))
+
+# Adjust filtering to allow for range matching
+last_two_days_before_harvest <- reshaped_data %>%
+  group_by(ID) %>%
+  filter(newtime >= LastDay1 & newtime <= LastDay2) %>%
+  arrange(ID, desc(newtime)) %>%
+  ungroup()
+
+print(head(last_two_days_before_harvest))  # Check filtered data
+
+
+#Checking
+# Print out some relevant details before the merge
+print(head(harvest_days_data))  # Check the harvest data
+print(unique(reshaped_data$ID))  # Make sure the IDs match
+
+# Verify the filtering condition for last two days before harvest
+print(reshaped_data$newtime)  # Ensure this column is correctly parsed and contains values
+
+
+
+
+# Create the boxplot
+testplot <- ggplot(data = alltogether) +
+  theme_classic() +
+  theme(axis.text.x = element_text(face = "italic")) +
+  geom_boxplot(aes(x = Species, y = mass_per_hr, color = Treatment), outlier.shape = NA) +
+  geom_jitter(aes(x = Species, y = mass_per_hr, color = Treatment)) +
+  xlab("Fungal Species") + 
+  ylab("Transpiration Rate (water loss g/hr)") +
+  scale_color_manual(name = "Treatment", values = c("control" = "deepskyblue", "drought" = "red")) +
+  labs(color = "Treatment") +
+  geom_hline(yintercept = c(0.05, 0.1, 0.15, 0.2, 0.25), color = "grey", linetype = "solid") +
+  ylim(0, 0.25)
+
+print(testplot)
+
+
+
+### New code
+
+# Load necessary libraries
+library(tidyverse)
+library(lubridate)
+
+# Load the data
+lys_data <- read_csv("Lysimetry_data.csv")
+harvest_days <- read_csv("Harvest_Days.csv")
+
+# View the structure of lys_data to identify date columns
+str(lys_data)
+
+# Reshape lysimetry data to long format
+lys_data_long <- lys_data %>%
+  pivot_longer(
+    cols = starts_with("Time"),  # Adjust if necessary to match your date columns
+    names_to = "Date",
+    values_to = "Water_Usage"
+  ) %>%
+  mutate(Date = as.Date(str_extract(Date, "\\d{2}/\\d{2}/\\d{2}"), format = "%m/%d/%y"))
+
+# Convert date columns in harvest_days to Date type
+harvest_days <- harvest_days %>%
+  mutate(LastDay1 = as.Date(LastDay1, format = "%m/%d/%Y"),
+         LastDay2 = as.Date(LastDay2, format = "%m/%d/%Y"))
+
+# Join harvest days with lysimetry data to exclude harvested plants
+data_with_harvest <- lys_data_long %>%
+  left_join(harvest_days, by = "Sample") %>%  # Ensure the join column is correct
+  filter(Date <= LastDay2) %>%
+  group_by(Sample) %>%
+  filter(Date >= min(Date))  # Ensure we're including data up to LastDay2
+
+# Identify days when plants were watered (assuming there's a column "Watered" indicating watering)
+# You may need to adjust this if "Watered" column is named differently or doesn't exist
+watered_days <- data_with_harvest %>%
+  filter(Watered == 1)
+
+# Create the timeline graph
+mygraph <- ggplot(data_with_harvest, aes(x = Date, y = Water_Usage, color = Treatment, group = Sample)) +
+  geom_line() +
+  geom_point(data = watered_days, aes(x = Date, y = Water_Usage), color = "blue", shape = 17) +
+  labs(title = "Water Usage Timeline by Treatment",
+       x = "Date",
+       y = "Water Usage (units)",
+       color = "Treatment") +
+  theme_minimal() +
+  scale_x_date(date_labels = "%b %d", date_breaks = "1 week") +
+  theme(legend.position = "bottom") +
+  guides(color = guide_legend(title = "Treatment"))
+
+# Save the plot
+ggsave("Water_Usage_Timeline.png", plot = mygraph)
+
+
+
+
+library(tidyverse)
+library(lubridate)
+
+# Reshape lysimetry data to long format
+lys_data_long <- lys_data %>%
+  # Gather sample columns into key-value pairs
+  pivot_longer(
+    cols = starts_with("sample"),
+    names_to = "date",
+    values_to = "sample_weight"
+  ) %>%
+  # Clean and process the date column
+  mutate(
+    # Extract the actual date from the sample name
+    date = str_remove(date, "sample"),
+    # Convert date to Date format
+    date = mdy(date)
+  ) %>%
+  # Ensure that the time information is handled correctly
+  # Extract time information from 'Water_Usage' column if it exists
+  mutate(
+    time = mdy_hm(Water_Usage),
+    datetime = as_datetime(paste(date, format(time, "%H:%M")))
+  ) %>%
+  select(ID, datetime, sample_weight)
+
+# Check the structure of the reshaped data
+str(lys_data_long)
+
+# View the first few rows to ensure it's reshaped correctly
+head(lys_data_long)
+
+
+
+
+
+
+
+### 9/22/24 Timeline graph attempt ####
+lysimetry_data_updated <- read.csv("Lysimetry_data_updated.csv")
+head(lysimetry_data_updated)
+
+
+library(dplyr)
+library(tidyr)
+
+# Separate sample and time columns
+sample_cols <- lysimetry_data_updated %>% select(ID, starts_with("sample"))
+time_cols <- lysimetry_data_updated %>% select(ID, starts_with("Time"))
+
+# Reshape sample columns
+samples_long <- sample_cols %>% 
+  pivot_longer(
+    cols = -ID,
+    names_to = c("Measurement", "Date"),
+    names_pattern = "sample(\\d{2}\\.\\d{2}\\.\\d{2})"
+  ) %>%
+  mutate(
+    Date = as.Date(paste0(sub("\\.", "/", Date), "23"), format = "%m/%d/%y")
+  )
+
+# Reshape time columns
+times_long <- time_cols %>% 
+  pivot_longer(
+    cols = -ID,
+    names_to = c("Measurement", "Date"),
+    names_pattern = "Time(\\d{2}\\.\\d{2}\\.\\d{2})"
+  ) %>%
+  mutate(
+    Date = as.Date(paste0(sub("\\.", "/", Date), "23"), format = "%m/%d/%y"),
+    Time = as.POSIXct(value, format = "%Y-%m-%d %H:%M:%S")
+  ) %>%
+  select(-value)  # Remove the original value column
+
+# Combine the reshaped sample and time data
+lysimetry_long <- samples_long %>% 
+  left_join(times_long, by = c("ID", "Date", "Measurement"))
+
+# View the first few rows
+head(lysimetry_long)
+
+#Trouble shooting
+samples_long <- sample_cols %>% 
+  pivot_longer(
+    cols = -ID,
+    names_to = c("Measurement", "Date"),
+    names_pattern = "sample(\\d{2})\\.(\\d{2}\\.\\d{2})"
+  ) %>% 
+  mutate(
+    Date = as.Date(paste0(sub("\\.", "/", Date), "23"), format = "%m/%d/%y")
+  )
+
+times_long <- time_cols %>% 
+  pivot_longer(
+    cols = -ID,
+    names_to = c("Measurement", "Date"),
+    names_pattern = "Time(\\d{2})\\.(\\d{2}\\.\\d{2})"
+  ) %>% 
+  mutate(
+    Date = as.Date(paste0(sub("\\.", "/", Date), "23"), format = "%m/%d/%y"),
+    Time = as.POSIXct(value, format = "%Y-%m-%d %H:%M:%S")
+  ) %>% 
+  select(-value)  # Remove the original value column
+
+
+lysimetry_long <- samples_long %>%
+  left_join(times_long, by = c("ID", "Date", "Measurement"))
+
+
+head(lysimetry_long)
+
+# Check for duplicates in samples_long
+samples_long_duplicates <- samples_long %>%
+  group_by(ID, Measurement, Date) %>%
+  filter(n() > 1)
+
+# Check for duplicates in times_long
+times_long_duplicates <- times_long %>%
+  group_by(ID, Measurement, Date) %>%
+  filter(n() > 1)
+
+#More Troubleshooting
+samples_long <- samples_long %>%
+  select(-Measurement)
+
+library(tidyr)
+library(dplyr)
+
+# Reshape lysimetry_data from wide to long format
+lysimetry_long <- lysimetry_data %>%
+  pivot_longer(
+    cols = starts_with("sample"), 
+    names_to = c("sample", "Date"),
+    names_pattern = "sample(\\d{2}\\.\\d{2}\\.\\d{2})",
+    values_to = "value"
+  ) %>%
+  mutate(Date = as.Date(Date, format = "%m.%d.%y"))  # Adjust the date format as needed
+
+# Reshape the Time columns similarly
+lysimetry_times <- lysimetry_data %>%
+  pivot_longer(
+    cols = starts_with("Time"),
+    names_to = c("time", "Date"),
+    names_pattern = "Time(\\d{2}\\.\\d{2}\\.\\d{2})",
+    values_to = "Time"
+  ) %>%
+  mutate(Date = as.Date(Date, format = "%m.%d.%y"))  # Adjust the date format as needed
+
+# Now join both reshaped datasets
+samples_long <- samples_long %>%
+  left_join(lysimetry_long, by = c("ID", "Date")) %>%
+  left_join(lysimetry_times, by = c("ID", "Date"))
+
+# Drop the 'Measurement' column as you requested
+samples_long <- samples_long %>% select(-Measurement)
+
+# Check the updated samples_long
+head(samples_long)
+
+
+
