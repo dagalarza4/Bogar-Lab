@@ -175,3 +175,41 @@ boxplot(Harvest_Data$Shoot_FW_before~Harvest_Data$Species+Harvest_Data$Treatment
 ggplot(Harvest_Data, aes(x=Species, y=Shoot_FW_before, fill=Treatment))+
   geom_boxplot()+
   labs(title = "Shoot Fresh Weight By Species and Treatment", x = "Species", y = "Shoot Fresh Weight (g)")
+
+
+
+#### 9/22/24 update ####
+ggplot(Harvest_Data, aes(Species, `Root_%_MC`)) + geom_boxplot() +
+  ylim(65, NA) +
+  labs(y = "Root Percent Moisture Content")
+
+ggplot(Harvest_Data, aes(Species, `Shoot_%_MC`)) + geom_boxplot() +
+  ylim(55, NA) +
+  labs(y = "Shoot Percent Moisture Content")
+
+ggplot(Harvest_Data, aes (Species, `Stem_diameter`)) + geom_boxplot() +
+  labs(y = "Stem Diameter (cm)")
+
+ggplot(Harvest_Data, aes (Species, `Shoot_FW_after`)) + geom_boxplot() +
+  labs(y = "Shoot Fresh Weight (g)")
+
+ggplot(Harvest_Data, aes (Species, `Root_FW_after`)) + geom_boxplot() +
+  labs(y = "Root Fresh Weight (g)")
+
+ggplot(Harvest_Data, aes (Species, `Average_SA`)) + geom_boxplot() +
+  ylim(25, NA) +
+  labs(y = "Leaf Surface Area (mm)")
+
+
+
+ggplot(Harvest_Data, aes (factor (Species), `Final_weight`)) + geom_boxplot() +
+  ylim(0, NA) +
+  labs(y = "Final Weight (g)")
+
+ggplot(Harvest_Data, aes(factor(Species), `Final_weight`)) +
+  geom_boxplot() +
+  coord_cartesian(ylim = c(0, NA)) +  # This zooms the y-axis without removing data
+  labs(y = "Final Weight (g)")
+
+
+
