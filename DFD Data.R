@@ -213,3 +213,12 @@ ggplot(Harvest_Data, aes(factor(Species), `Final_weight`)) +
 
 
 
+#9/27 Surface Area Needles
+Harvest_Data$Species <- factor(Harvest_Data$Species, 
+                               levels = c("NM", "RP", "SP", "TC", "R+S", "T+C"))
+
+ggplot(Harvest_Data, aes(Species, `Av_Needle_SA`)) + 
+  geom_boxplot() + 
+  labs(y = "Needle Surface Area (mm)")
+
+

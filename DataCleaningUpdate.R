@@ -924,3 +924,37 @@ ggplot(lys_long_up, aes(x = DateTime, y = Transpiration_Rate, color = Treatment)
   scale_x_datetime(date_labels = "%b %Y", date_breaks = "1 month") +  # Format x-axis to show months and years
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
   facet_wrap(~ Species)  # Create separate plots for each species
+
+
+# Step 7: Create the plot with specified order for Species
+lys_long_up$Species <- factor(lys_long_up$Species, levels = c("NM", "RP", "SP", "TC", "R+S", "S+T"))  # Set the order of species
+
+ggplot(lys_long_up, aes(x = DateTime, y = Transpiration_Rate, color = Treatment)) +
+  geom_line() +  # Line for each plant
+  geom_point() +  # Points for each measurement
+  labs(title = "Transpiration Rates Over Time by Treatment and Fungal Species",
+       x = "Date and Time",
+       y = "Transpiration Rate (g/day)",
+       color = "Treatment") +
+  theme_minimal() +
+  scale_x_datetime(date_labels = "%b %Y", date_breaks = "1 month") +  # Format x-axis to show months and years
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
+  facet_wrap(~ Species, ncol = 1)  # Create separate plots for each species, arranged in the specified order
+
+
+# Step 8: Create the plot with facets and ordered species
+lys_long_up$Species <- factor(lys_long_up$Species, levels = c("NM", "RP", "SP", "TC", "R+S", "S+T"))  # Set the order of species
+
+ggplot(lys_long_up, aes(x = DateTime, y = Transpiration_Rate, color = Treatment, group = ID)) +
+  geom_line() +  # Line for each plant
+  geom_point() +  # Points for each measurement
+  labs(title = "Transpiration Rates Over Time by Treatment and Fungal Species",
+       x = "Date and Time",
+       y = "Transpiration Rate (g/day)",
+       color = "Treatment") +
+  theme_minimal() +
+  scale_x_datetime(date_labels = "%b %Y", date_breaks = "1 month") +  # Format x-axis to show months and years
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
+  scale_color_manual(values = c("control" = "blue", "drought" = "red")) +  # Specify treatment colors
+  guides(color = guide_legend(override.aes = list(shape = c(16, 17)))) +  # Adjust legend appearance
+  facet_wrap(~ Species, ncol = 3)  # Set to 3 columns to arrange mini graphs in rows
