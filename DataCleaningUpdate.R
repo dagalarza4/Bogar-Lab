@@ -870,125 +870,57 @@ head(lys_data_long)
 
 
 
-### 9/22/24 Timeline graph attempt ####
-lysimetry_data_updated <- read.csv("Lysimetry_data_updated.csv")
-head(lysimetry_data_updated)
+#9/27/24 Timeline graph attempt ####
 
+library(readxl) 
+library(readr)  
+library(tidyr)  
+library(dplyr)    
+library(ggplot2)  
 
-library(dplyr)
-library(tidyr)
+# Step 1: Import data
+lys_up927 <- read_excel("Lysimetry_updated.xlsx")
+treatment_data <- read_csv("Treatment_key.csv")
 
-# Separate sample and time columns
-sample_cols <- lysimetry_data_updated %>% select(ID, starts_with("sample"))
-time_cols <- lysimetry_data_updated %>% select(ID, starts_with("Time"))
-
-# Reshape sample columns
-samples_long <- sample_cols %>% 
+# Step 3: Reshape the sample data
+lys_samples_long <- lys_up927 %>%
   pivot_longer(
-    cols = -ID,
-    names_to = c("Measurement", "Date"),
-    names_pattern = "sample(\\d{2}\\.\\d{2}\\.\\d{2})"
+    cols = starts_with("sample"),
+    names_to = c("Sample", "Date"), # Create separate columns
+    names_sep = "(?<=sample)(?=\\d)", # Split names at "sample" and number
+    values_to = "Transpiration_Rate" # Assign values to this column
   ) %>%
-  mutate(
-    Date = as.Date(paste0(sub("\\.", "/", Date), "23"), format = "%m/%d/%y")
-  )
+  select(ID, Date, Transpiration_Rate)  # Select relevant columns
 
-# Reshape time columns
-times_long <- time_cols %>% 
-  pivot_longer(
-    cols = -ID,
-    names_to = c("Measurement", "Date"),
-    names_pattern = "Time(\\d{2}\\.\\d{2}\\.\\d{2})"
-  ) %>%
-  mutate(
-    Date = as.Date(paste0(sub("\\.", "/", Date), "23"), format = "%m/%d/%y"),
-    Time = as.POSIXct(value, format = "%Y-%m-%d %H:%M:%S")
-  ) %>%
-  select(-value)  # Remove the original value column
-
-# Combine the reshaped sample and time data
-lysimetry_long <- samples_long %>% 
-  left_join(times_long, by = c("ID", "Date", "Measurement"))
-
-# View the first few rows
-head(lysimetry_long)
-
-#Trouble shooting
-samples_long <- sample_cols %>% 
-  pivot_longer(
-    cols = -ID,
-    names_to = c("Measurement", "Date"),
-    names_pattern = "sample(\\d{2})\\.(\\d{2}\\.\\d{2})"
-  ) %>% 
-  mutate(
-    Date = as.Date(paste0(sub("\\.", "/", Date), "23"), format = "%m/%d/%y")
-  )
-
-times_long <- time_cols %>% 
-  pivot_longer(
-    cols = -ID,
-    names_to = c("Measurement", "Date"),
-    names_pattern = "Time(\\d{2})\\.(\\d{2}\\.\\d{2})"
-  ) %>% 
-  mutate(
-    Date = as.Date(paste0(sub("\\.", "/", Date), "23"), format = "%m/%d/%y"),
-    Time = as.POSIXct(value, format = "%Y-%m-%d %H:%M:%S")
-  ) %>% 
-  select(-value)  # Remove the original value column
-
-
-lysimetry_long <- samples_long %>%
-  left_join(times_long, by = c("ID", "Date", "Measurement"))
-
-
-head(lysimetry_long)
-
-# Check for duplicates in samples_long
-samples_long_duplicates <- samples_long %>%
-  group_by(ID, Measurement, Date) %>%
-  filter(n() > 1)
-
-# Check for duplicates in times_long
-times_long_duplicates <- times_long %>%
-  group_by(ID, Measurement, Date) %>%
-  filter(n() > 1)
-
-#More Troubleshooting
-samples_long <- samples_long %>%
-  select(-Measurement)
-
-library(tidyr)
-library(dplyr)
-
-# Reshape lysimetry_data from wide to long format
-lysimetry_long <- lysimetry_data %>%
-  pivot_longer(
-    cols = starts_with("sample"), 
-    names_to = c("sample", "Date"),
-    names_pattern = "sample(\\d{2}\\.\\d{2}\\.\\d{2})",
-    values_to = "value"
-  ) %>%
-  mutate(Date = as.Date(Date, format = "%m.%d.%y"))  # Adjust the date format as needed
-
-# Reshape the Time columns similarly
-lysimetry_times <- lysimetry_data %>%
+# Step 4: Reshape the time data
+lys_times_long <- lys_up927 %>%
   pivot_longer(
     cols = starts_with("Time"),
-    names_to = c("time", "Date"),
-    names_pattern = "Time(\\d{2}\\.\\d{2}\\.\\d{2})",
-    values_to = "Time"
+    names_to = c("TimeSample", "Date"), # Create separate columns
+    names_sep = "(?<=Time)(?=\\d)", # Split names at "Time" and number
+    values_to = "DateTime" # Assign values to this column
   ) %>%
-  mutate(Date = as.Date(Date, format = "%m.%d.%y"))  # Adjust the date format as needed
+  select(ID, Date, DateTime)  # Select relevant columns
 
-# Now join both reshaped datasets
-samples_long <- samples_long %>%
-  left_join(lysimetry_long, by = c("ID", "Date")) %>%
-  left_join(lysimetry_times, by = c("ID", "Date"))
+# Step 5: Join the reshaped samples and times based on ID and Date
+lys_long_up <- lys_samples_long %>%
+  inner_join(lys_times_long, by = c("ID", "Date")) %>%
+  select(ID, DateTime, Transpiration_Rate) %>%  # Select relevant columns
+  mutate(DateTime = as.POSIXct(DateTime, format = "%Y-%m-%d %H:%M:%S"))  # Ensure DateTime is in the correct format
 
-# Drop the 'Measurement' column as you requested
-samples_long <- samples_long %>% select(-Measurement)
+# Step 6: Merge with treatment data
+lys_long_up <- lys_long_up %>%
+  left_join(treatment_data, by = c("ID" = "Plant_ID"))  # Adjust the join if 'ID' is named differently in treatment_data
 
-# Check the updated samples_long
-head(samples_long)
-
-
+# Step 7: Create the plot
+ggplot(lys_long_up, aes(x = DateTime, y = Transpiration_Rate, color = Treatment)) +
+  geom_line() +  # Line for each plant
+  geom_point() +  # Points for each measurement
+  labs(title = "Transpiration Rates Over Time by Treatment and Fungal Species",
+       x = "Date and Time",
+       y = "Transpiration Rate (g/day)",
+       color = "Treatment") +
+  theme_minimal() +
+  scale_x_datetime(date_labels = "%b %Y", date_breaks = "1 month") +  # Format x-axis to show months and years
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
+  facet_wrap(~ Species)  # Create separate plots for each species
