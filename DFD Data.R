@@ -11,25 +11,53 @@ library(dplyr)
 head(Harvest_Data)
 names(Harvest_Data)
 
+
+#11/9/24 update to fix S+T species category- NA displayed, not S+T
+# Check for any remaining NA values in the 'Species' column
+sum(is.na(Harvest_Data_LB$Species))
+# Replace any remaining NA values in the 'Species' column with "S+T"
+Harvest_Data_LB$Species[is.na(Harvest_Data_LB$Species)] <- "S+T"
+# Add "S+T" as a level to the 'Species' factor
+levels(Harvest_Data_LB$Species) <- c(levels(Harvest_Data_LB$Species), "S+T")
+# Replace NA values in 'Species' with "S+T"
+Harvest_Data_LB$Species[is.na(Harvest_Data_LB$Species)] <- "S+T"
+# Check the unique values in the 'Species' column
+unique(Harvest_Data_LB$Species)
+# Check the factor levels of 'Species'
+levels(Harvest_Data_LB$Species)
+# Check the count of each species
+table(Harvest_Data_LB$Species)
+# Remove the 'T+C' level from the Species factor
+Harvest_Data_LB$Species <- factor(Harvest_Data_LB$Species, levels = levels(Harvest_Data_LB$Species)[levels(Harvest_Data_LB$Species) != "T+C"])
+# Check the unique values in the 'Species' column
+unique(Harvest_Data_LB$Species)
+# Check the factor levels of 'Species'
+levels(Harvest_Data_LB$Species)
+# Check the count of each species
+table(Harvest_Data_LB$Species)
+# Create a backup of the cleaned data
+Harvest_Data_Clean <- Harvest_Data_LB
+
+
 #### Percent Colonization ####
 dev.off()
-ggplot(Harvest_Data, aes(Species, `%_colonization`)) + geom_point()
+ggplot(Harvest_Data_Clean, aes(Species, `%_colonization`)) + geom_point()
 
-ggplot(Harvest_Data, aes(Species, `%_colonization`)) + geom_point(colour = 5) + 
+ggplot(Harvest_Data_Clean, aes(Species, `%_colonization`)) + geom_point(colour = 5) + 
   labs(title = "Percent Colonization by Species", x = "Species", y = "Percent Colonization")
 
-ggplot(Harvest_Data, aes(Species, `%_colonization`)) + geom_boxplot() +
+ggplot(Harvest_Data_Clean, aes(Species, `%_colonization`)) + geom_boxplot() +
   labs(title = "Percent Colonization by Species", x = "Species", y = "Percentage")
 
-ggplot(Harvest_Data, aes(Species, `%_colonization`, fill = Species)) + geom_boxplot() + 
+ggplot(Harvest_Data_Clean, aes(Species, `%_colonization`, fill = Species)) + geom_boxplot() + 
   labs(title = "Percent Colonization by Fungal Species", x = "Species", y = "Percentage") + 
   geom_jitter(shape=16, position=position_jitter(0.2))
 
-melt(Harvest_Data, treatment.vars = 'id')
+melt(Harvest_Data_Clean, treatment.vars = 'id')
 measure.vars = c('drought', 'control')
 ggplot(Harvest_Data) + geom_boxplot(aes(Species, `%_colonization`))
 
-ggplot(Harvest_Data, aes(Species, `%_colonization`, fill = Species)) + geom_boxplot() + 
+ggplot(Harvest_Data_Clean, aes(Species, `%_colonization`, fill = Species)) + geom_boxplot() + 
   labs(title = "Percent Colonization by Fungal Species", x = "Species", y = "Percentage") + 
   geom_jitter(shape=16, position=position_jitter(0.2))
 
@@ -316,5 +344,9 @@ ggplot(subset(Harvest_Data_LB, Species != "NM" & perccol != 0), aes(x = perccol,
   labs(title = "Percent Colonization by Total Dry Biomass", 
        x = "Percent Colonization", 
        y = "Total Dry Biomass (g)")
+
+
+
+
 
 
