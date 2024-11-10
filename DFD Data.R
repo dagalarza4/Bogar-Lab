@@ -63,7 +63,7 @@ ggplot(Harvest_Data_Clean, aes(Species, `%_colonization`, fill = Species)) + geo
 
 # Laura's suggested split by color for Percent Colonization:
 
-ggplot(Harvest_Data, aes(Species, `%_colonization`, 
+ggplot(Harvest_Data_Clean, aes(Species, `%_colonization`, 
                          fill = Species,
                          color = Treatment)) + 
   geom_boxplot() + 
@@ -72,10 +72,10 @@ ggplot(Harvest_Data, aes(Species, `%_colonization`,
        y = "Percentage") + 
   geom_jitter(shape=16, position=position_jitter(0.2))
 
-Harvest_Data$LBperccol = 
+Harvest_Data_Clean$LBperccol = 
   (Harvest_Data$`%_colonization`/100)/((Harvest_Data$`%_colonization`/100)+1)*100
 
-ggplot(Harvest_Data, aes(Species, LBperccol, 
+ggplot(Harvest_Data_Clean, aes(Species, LBperccol, 
                          fill = Species,
                          color = Treatment)) + 
   geom_boxplot(outlier.alpha = 0) + 
@@ -84,7 +84,7 @@ ggplot(Harvest_Data, aes(Species, LBperccol,
        y = "Percentage") + 
   geom_jitter(shape=16, position=position_jitter(0.2))
 
-ggplot(Harvest_Data, aes(Species, LBperccol, 
+ggplot(Harvest_Data_Clean, aes(Species, LBperccol, 
                          fill = Species)) + 
   geom_boxplot(outlier.alpha = 0) + 
   labs( 
@@ -94,12 +94,10 @@ ggplot(Harvest_Data, aes(Species, LBperccol,
 
 #Add a title to the above graph
 library(ggplot2)
-
+library(ggplot2)
 library(ggplot2)
 
-library(ggplot2)
-
-p <- ggplot(Harvest_Data, aes(x = Species, y = LBperccol, fill = Species)) +
+p <- ggplot(Harvest_Data_Clean, aes(x = Species, y = LBperccol, fill = Species)) +
   geom_boxplot(outlier.alpha = 0) +
   geom_jitter(shape = 16, position = position_jitter(0.2)) +
   labs(title = "Percentage Colonization by Fungal Species",
@@ -132,7 +130,7 @@ summary_stats %>%
   select(summary)
 
 #Create total dry biomass
-Harvest_Data_Perc = Harvest_Data %>% mutate(total_dry_biomass = Shoot_DW + Root_DW)
+Harvest_Data_Perc = Harvest_Data_Clean %>% mutate(total_dry_biomass = Shoot_DW + Root_DW)
 Harvest_Data_Perc$perccol = 
   (Harvest_Data_Perc$`%_colonization`/100)/((Harvest_Data_Perc$`%_colonization`/100)+1)*100
 
@@ -174,178 +172,233 @@ ggplot(subset(Harvest_Data_LB, Species != "NM"), aes(x = perccol, y = total_dry_
 #### Statistics #### 
 
 #Percent Colonization by Species (Significant)
-Percent_Col_by_Species <- aov(`%_colonization` ~ Species, data = Harvest_Data)
+Percent_Col_by_Species <- aov(`%_colonization` ~ Species, data = Harvest_Data_Clean)
 summary(Percent_Col_by_Species)
 
 #Root:Shoot Ratio by Species (not significant)
-Harvest_Data$Root_to_Shoot_Ratio <- Harvest_Data$Root_DW / Harvest_Data$Shoot_DW
-Root_to_Shoot_Ratio_by_Species <- aov(`Root_to_Shoot_Ratio` ~ Species, data = Harvest_Data)
+Harvest_Data_Clean$Root_to_Shoot_Ratio <- Harvest_Data_Clean$Root_DW / Harvest_Data_Clean$Shoot_DW
+Root_to_Shoot_Ratio_by_Species <- aov(`Root_to_Shoot_Ratio` ~ Species, data = Harvest_Data_Clean)
 summary(Root_to_Shoot_Ratio_by_Species)
 
 #Root:Shoot Ratio by Treatment (not significant)
-Root_to_Shoot_Ratio_by_Treatment <- aov(`Root_to_Shoot_Ratio` ~ Treatment, data = Harvest_Data)
+Root_to_Shoot_Ratio_by_Treatment <- aov(`Root_to_Shoot_Ratio` ~ Treatment, data = Harvest_Data_Clean)
 summary(Root_to_Shoot_Ratio_by_Treatment)
 
 #Root DW by Species (not significant)
-Root_DW_by_Species <- aov(`Root_DW` ~ Species, data = Harvest_Data)
+Root_DW_by_Species <- aov(`Root_DW` ~ Species, data = Harvest_Data_Clean)
 summary(Root_DW_by_Species)
 
 #Root DW by Treatment (not significant)
-Root_DW_by_Treatment <- aov(`Root_DW` ~ Treatment, data = Harvest_Data)
+Root_DW_by_Treatment <- aov(`Root_DW` ~ Treatment, data = Harvest_Data_Clean)
 summary(Root_DW_by_Treatment)
 
 #Root FW by Species (not significant)
-Root_FW_by_Species <- aov(`Root_FW_before` ~ Species, data = Harvest_Data)
+Root_FW_by_Species <- aov(`Root_FW_before` ~ Species, data = Harvest_Data_Clean)
 summary(Root_FW_by_Species)
 
 #Root FW by Treatment (not significant)
-Root_FW_by_Treatment <- aov(`Root_FW_before` ~ Treatment, data = Harvest_Data)
+Root_FW_by_Treatment <- aov(`Root_FW_before` ~ Treatment, data = Harvest_Data_Clean)
 summary(Root_FW_by_Treatment)
 
 #Shoot DW by Species (Significant, RP-R+S, SP-R+S)
-Shoot_DW_by_Species <- aov(`Shoot_DW` ~ Species, data = Harvest_Data)
+Shoot_DW_by_Species <- aov(`Shoot_DW` ~ Species, data = Harvest_Data_Clean)
 summary(Shoot_DW_by_Species)
 TukeyHSD(Shoot_DW_by_Species)
 
 #Shoot DW by Treatment (not significant)
-Shoot_DW_by_Treatment <- aov(`Shoot_DW` ~ Treatment, data = Harvest_Data)
+Shoot_DW_by_Treatment <- aov(`Shoot_DW` ~ Treatment, data = Harvest_Data_Clean)
 summary(Shoot_DW_by_Treatment)
 
 #Shoot FW by Species (Significant)
-Shoot_FW_by_Species <- aov(`Shoot_FW_before` ~ Species, data = Harvest_Data)
+Shoot_FW_by_Species <- aov(`Shoot_FW_before` ~ Species, data = Harvest_Data_Clean)
 summary(Shoot_FW_by_Species)
 
 #Shoot FW by Treatment (not significant)
-Shoot_FW_by_Treatment <- aov(`Shoot_FW_before` ~ Treatment, data = Harvest_Data)
+Shoot_FW_by_Treatment <- aov(`Shoot_FW_before` ~ Treatment, data = Harvest_Data_Clean)
 summary(Shoot_FW_by_Treatment)
 
 #Stem Diameter by Species (not significant)
-Stem_diameter_by_Species <- aov(`Stem_diameter` ~ Species, data = Harvest_Data)
+Stem_diameter_by_Species <- aov(`Stem_diameter` ~ Species, data = Harvest_Data_Clean)
 summary(Stem_diameter_by_Species)
 
 #Stem Diameter by Treatment (not significant)
-Stem_diameter_by_Treatment <- aov(`Stem_diameter` ~ Treatment, data = Harvest_Data)
+Stem_diameter_by_Treatment <- aov(`Stem_diameter` ~ Treatment, data = Harvest_Data_Clean)
 summary(Stem_diameter_by_Treatment)
 
 #Root MC by Species (not significant)
-Root_MC_by_Species <- aov(`Root_%_MC` ~ Species, data = Harvest_Data)
+Root_MC_by_Species <- aov(`Root_%_MC` ~ Species, data = Harvest_Data_Clean)
 summary(Root_MC_by_Species)
 
 #Root MC by Treatment (not significant)
-Root_MC_by_Treatment <- aov(`Root_%_MC` ~ Treatment, data = Harvest_Data)
+Root_MC_by_Treatment <- aov(`Root_%_MC` ~ Treatment, data = Harvest_Data_Clean)
 summary(Root_MC_by_Treatment)
 
 #Shoot MC by Species (not significant)
-Shoot_MC_by_Species <- aov(`Shoot_%_MC` ~ Species, data = Harvest_Data)
+Shoot_MC_by_Species <- aov(`Shoot_%_MC` ~ Species, data = Harvest_Data_Clean)
 summary(Shoot_MC_by_Species)
 
 #Shoot MC by Treatment (Significant)
-Shoot_MC_by_Treatment <- aov(`Shoot_%_MC` ~ Treatment, data = Harvest_Data)
+Shoot_MC_by_Treatment <- aov(`Shoot_%_MC` ~ Treatment, data = Harvest_Data_Clean)
 summary(Shoot_MC_by_Treatment)
 
 #Total Dry Biomass by Species (not significant, but indeed RP plants were a bit smaller than R+S and other)
-totalmassanova = aov(total_dry_mass ~ Species, data = Harvest_Data_LB)
+totalmassanova = aov(total_dry_mass ~ Species, data = Harvest_Data_Clean)
 summary(totalmassanova)
 TukeyHSD(totalmassanova)
 
 #Total Dry Biomass by Treatment (not significant)
-totalmassanovabytreatment = aov(total_dry_mass ~ Treatment, data = Harvest_Data_LB)
+totalmassanovabytreatment = aov(total_dry_mass ~ Treatment, data = Harvest_Data_Clean)
 summary(totalmassanovabytreatment)
 
+#Final Weight by Species (not significant)
+Final_Weight_by_Species <- aov(`Final_weight` ~ Species, data = Harvest_Data_Clean)
+summary(Final_Weight_by_Species)
+
+#Final Weight by Treatment (significant)
+Final_Weight_by_Treatment <- aov(`Final_weight` ~ Treatment, data = Harvest_Data_Clean)
+summary(Final_Weight_by_Treatment)
 
 
 
 
 #### Boxplot Graphs ####
 
+#Root:Shoot by Species and Treatment
+ggplot(Harvest_Data_Clean, aes(x = Species, y = Root_to_Shoot_Ratio, fill = Treatment)) + 
+  geom_boxplot() + 
+  labs(title = "Root to Shoot Ratio By Species and Treatment", x = "Species", y = "Root to Shoot Ratio") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
+
 #Root:Shoot by Species
-boxplot(Harvest_Data$Root_to_Shoot_Ratio ~ Harvest_Data$Species)
-ggplot(Harvest_Data, aes(Species, Root_to_Shoot_Ratio)) +geom_boxplot() +
+boxplot(Harvest_Data_Clean$Root_to_Shoot_Ratio ~ Harvest_Data$Species)
+ggplot(Harvest_Data_Clean, aes(Species, Root_to_Shoot_Ratio)) +geom_boxplot() +
   labs(title = "Root to Shoot Ratio by Species", y = "Root to Shoot Ratio")
 
 #Root:Shoot by Treatment (provides no meaningful info)
-ggplot(Harvest_Data, aes(Treatment, Root_to_Shoot_Ratio)) +geom_boxplot() +
+ggplot(Harvest_Data_Clean, aes(Treatment, Root_to_Shoot_Ratio)) +geom_boxplot() +
   labs(title = "Root to Shoot Ratio by Treatment", y = "Root to Shoot Ratio")
 
 #Shoot DW by Species and Treatment
-boxplot(Harvest_Data$Shoot_DW~Harvest_Data$Species+Harvest_Data$Treatment)
-ggplot(Harvest_Data, aes(x=Species, y=Shoot_DW, fill=Treatment))+
-  geom_boxplot()+
-  labs(title = "Shoot Dry Weight By Species and Treatment", x = "Species", y = "Shoot Dry Weight (g)")
+boxplot(Harvest_Data_Clean$Shoot_DW~Harvest_Data$Species+Harvest_Data_Clean$Treatment)
+ggplot(Harvest_Data_Clean, aes(x = Species, y = Shoot_DW, fill = Treatment)) + 
+  geom_boxplot() + 
+  labs(title = "Shoot Dry Weight By Species and Treatment", x = "Species", y = "Shoot Dry Weight (g)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
 
 #Shoot FW by Species and Treatment
-boxplot(Harvest_Data$Shoot_FW_before~Harvest_Data$Species+Harvest_Data$Treatment)
-ggplot(Harvest_Data, aes(x=Species, y=Shoot_FW_before, fill=Treatment))+
-  geom_boxplot()+
-  labs(title = "Shoot Fresh Weight By Species and Treatment", x = "Species", y = "Shoot Fresh Weight (g)")
+boxplot(Harvest_Data_Clean$Shoot_FW_before~Harvest_Data_Clean$Species+Harvest_Data_Clean$Treatment)
+ggplot(Harvest_Data_Clean, aes(x = Species, y = Shoot_FW_before, fill = Treatment)) + 
+  geom_boxplot() + 
+  labs(title = "Shoot Fresh Weight By Species and Treatment", x = "Species", y = "Shoot Fresh Weight (g)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
+
+#Root % MC by Species and Treatment
+ggplot(Harvest_Data_Clean, aes(x = Species, y = `Root_%_MC`, fill = Treatment)) + 
+  geom_boxplot() + 
+  ylim(65, NA) +
+  labs(title = "Root Moisture Content By Species and Treatment", x = "Species", y = "Root Moisture Content (%)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
 
 #Root % MC by Species 
-ggplot(Harvest_Data, aes(Species, `Root_%_MC`)) + geom_boxplot() +
+ggplot(Harvest_Data_Clean, aes(Species, `Root_%_MC`)) + geom_boxplot() +
   ylim(65, NA) +
-  labs(y = "Root Percent Moisture Content")
+  labs(y = "Root Moisture Content (%)")
 
 #Root % MC by Treatment 
-ggplot(Harvest_Data, aes(Treatment, `Root_%_MC`)) + geom_boxplot() +
+ggplot(Harvest_Data_Clean, aes(Treatment, `Root_%_MC`)) + geom_boxplot() +
   ylim(65, NA) +
-  labs(title= "Root Moisture Content by Treatment", y = "Root Percent Moisture Content (%)")
+  labs(title= "Root Moisture Content by Treatment", y = "Root Moisture Content (%)")
+
+#Shoot % MC by Species and Treatment
+ggplot(Harvest_Data_Clean, aes(x = Species, y = `Shoot_%_MC`, fill = Treatment)) + 
+  geom_boxplot() + 
+  labs(title = "Shoot Moisture Content By Species and Treatment", x = "Species", y = "Shoot Moisture Content (%)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
 
 #Shoot % MC by Species
-ggplot(Harvest_Data, aes(Species, `Shoot_%_MC`)) + geom_boxplot() +
+ggplot(Harvest_Data_Clean, aes(Species, `Shoot_%_MC`)) + geom_boxplot() +
   ylim(55, NA) +
-  labs(y = "Shoot Percent Moisture Content")
+  labs(title = "Shoot Moisture Content by Species", y = "Shoot Moisture Content (%)")
 
 #Shoot % MC by Treatment
-ggplot(Harvest_Data, aes(Treatment, `Shoot_%_MC`)) + geom_boxplot() + 
+ggplot(Harvest_Data_Clean, aes(Treatment, `Shoot_%_MC`)) + geom_boxplot() + 
   labs(title = "Shoot Moisture Content by Treatment", y = "Shoot Moisture Content (%)")
 
+#Stem Diameter by Species and Treatment
+ggplot(Harvest_Data_Clean, aes(x = Species, y = `Stem_diameter`, fill = Treatment)) + 
+  geom_boxplot() + 
+  labs(title = "Stem Diameter By Species and Treatment", x = "Species", y = "Stem Diameter (cm)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
+
 #Stem Diameter by Species
-ggplot(Harvest_Data, aes (Species, `Stem_diameter`)) + geom_boxplot() +
+ggplot(Harvest_Data_Clean, aes (Species, `Stem_diameter`)) + geom_boxplot() +
   labs(y = "Stem Diameter (cm)")
 
+#Stem Diameter by Treatment
+ggplot(Harvest_Data_Clean, aes (Treatment, `Stem_diameter`)) + geom_boxplot() +
+  labs(y = "Stem Diameter (cm)")
+
+#Shoot FW by Species and Treatment
+ggplot(Harvest_Data_Clean, aes(x = Species, y = `Shoot_FW_after`, fill = Treatment)) + 
+  geom_boxplot() + 
+  labs(title = "Shoot Fresh Weight By Species and Treatment", x = "Species", y = "Shoot Fresh Weight (g)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
+
 #Shoot FW by Species
-ggplot(Harvest_Data, aes (Species, `Shoot_FW_after`)) + geom_boxplot() +
+ggplot(Harvest_Data_Clean, aes (Species, `Shoot_FW_after`)) + geom_boxplot() +
   labs(y = "Shoot Fresh Weight (g)")
 
+#Root FW by Species and Treatment
+ggplot(Harvest_Data_Clean, aes(x = Species, y = `Root_FW_after`, fill = Treatment)) + 
+  geom_boxplot() + 
+  labs(title = "Root Fresh Weight By Species and Treatment", x = "Species", y = "Root Fresh Weight (g)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
+
 #Root FW by Species
-ggplot(Harvest_Data, aes (Species, `Root_FW_after`)) + geom_boxplot() +
+ggplot(Harvest_Data_Clean, aes (Species, `Root_FW_after`)) + geom_boxplot() +
   labs(y = "Root Fresh Weight (g)")
 
-#Attempt at Final Weight
-ggplot(Harvest_Data, aes (factor (Species), `Final_weight`)) + geom_boxplot() +
-  ylim(0, NA) +
-  labs(y = "Final Weight (g)")
+#Final Weight by Species and Treatment
+Harvest_Data_Clean$Final_weight <- as.numeric(Harvest_Data_Clean$Final_weight)
+sum(is.na(Harvest_Data_Clean$Final_weight))
+Harvest_Data_Clean[is.na(Harvest_Data_Clean$Final_weight), "Final_weight"]
+Harvest_Data_Clean <- Harvest_Data_Clean[!is.na(Harvest_Data_Clean$Final_weight), ]
 
-ggplot(Harvest_Data, aes(factor(Species), `Final_weight`)) +
-  geom_boxplot() +
-  coord_cartesian(ylim = c(0, NA)) +  # This zooms the y-axis without removing data
-  labs(y = "Final Weight (g)")
+ggplot(Harvest_Data_Clean, aes(x = Species, y = `Final_weight`, fill = Treatment)) + 
+  geom_boxplot() + 
+  ylim(NA, 90) +
+  labs(title = "Final Total Weight By Species and Treatment", x = "Species", y = "Final Weight (g)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
+
+#Leaf SA by Species and Treatment
+ggplot(Harvest_Data_Clean, aes(x = Species, y = `Av_Needle_SA`, fill = Treatment)) + 
+  geom_boxplot() + 
+  labs(title = "Leaf Surface Area By Species and Treatment", x = "Species", y = "Leaf Surface Area (cm)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
 
 #Leaf SA by Species
-Harvest_Data$Species <- factor(Harvest_Data$Species, 
-                               levels = c("NM", "RP", "SP", "TC", "R+S", "T+C"))
-ggplot(Harvest_Data, aes(Species, `Av_Needle_SA`)) + 
-  geom_boxplot() + 
-  labs(y = "Needle Surface Area (mm)")
+ggplot(Harvest_Data_Clean, aes (Species, `Av_Needle_SA`)) + geom_boxplot() +
+  labs(y = "Leaf Surface Area (cm)")
+
+#Leaf SA by Treatment
+ggplot(Harvest_Data_Clean, aes (Treatment, `Av_Needle_SA`)) + geom_boxplot() +
+  labs(y = "Leaf Surface Area (cm)")
 
 #% Colonization by Total Dry Biomass
-ggplot(subset(Harvest_Data_LB, Species != "NM"), aes(x = perccol, y = total_dry_mass, color = Species)) +
+ggplot(subset(Harvest_Data_Clean, Species != "NM"), aes(x = perccol, y = total_dry_mass, color = Species)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Percent Colonization by Total Dry Biomass", 
-       x = "Percent Colonization", 
+       x = "Colonization (%)", 
        y = "Total Dry Biomass (g)")
 
 #% Colonization by Total Dry Biomass (without values = 0)
-Harvest_Data_LB$Species <- factor(Harvest_Data$Species, 
-                               levels = c("NM", "RP", "SP", "TC", "R+S", "S+T"))
-ggplot(subset(Harvest_Data_LB, Species != "NM" & perccol != 0), aes(x = perccol, y = total_dry_mass, color = Species)) +
+ggplot(subset(Harvest_Data_Clean, Species != "NM" & perccol != 0), aes(x = perccol, y = total_dry_mass, color = Species)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Percent Colonization by Total Dry Biomass", 
-       x = "Percent Colonization", 
+       x = "Colonization (%)", 
        y = "Total Dry Biomass (g)")
-
-
 
 
 
