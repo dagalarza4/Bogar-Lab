@@ -7,9 +7,14 @@ library(devtools)
 library(usethis)
 library(reshape2)
 library(dplyr)
+library(readxl)
 
+Harvest_Data <- read_excel("Harvest Data.xlsx")
 head(Harvest_Data)
 names(Harvest_Data)
+
+treatments = read_csv("Treatment_key.csv") %>%
+  mutate(ID = Plant_ID)
 
 
 #11/9/24 update to fix S+T species category- NA displayed, not S+T
@@ -1113,6 +1118,73 @@ Lysimetry_calculated <- data.frame(
   Time_Diff_34 = as.numeric(Lysimetry_Super_Update$Time_diff_08_15_08_16, units = "hours"),
   Transpiration_Rate_34 = Lysimetry_Super_Update$Transpiration_rate_08_15_08_16
 )
+
+
+
+#Create a new dataset
+library(readr)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(readxl)
+
+days_measured <- read_excel("Lysimetry+Info.xlsx", sheet = "Days Measured")
+
+#Creating a new dataset
+Transpiration_rate_dataset <- days_measured %>%
+  expand_grid(ID = treatments$ID) %>%  # Create all combinations of Dates and Plant IDs
+  left_join(treatments, by = "ID")      # Join the treatments info based on the 'ID' column
+
+# Convert the 'Dates' column to correct Date format
+Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
+  mutate(Date = as.Date(Dates, format = "%m/%d/%y"))
+
+
+####Saved up to here ####
+
+
+
+# Join the calculated transpiration rate columns from Lysimetry_calculated to Transpiration_rate_dataset
+Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
+  left_join(Lysimetry_calculated %>% select(ID, starts_with("Transpiration_Rate")), by = "ID")
+
+
+#Time for the graph
+
+
+# Pivot longer to create a long format dataset for plotting
+Transpiration_rate_long <- Transpiration_rate_dataset %>%
+  pivot_longer(cols = starts_with("Transpiration_Rate"), 
+               names_to = "Time_Period", 
+               values_to = "Transpiration_Rate")
+
+# Plot the graph using 'dates' as the x-axis
+ggplot(Transpiration_rate_long, aes(x = Dates, y = Transpiration_Rate, color = Treatment, shape = Species)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Transpiration Rates by Species and Treatment Over Time",
+       x = "Date",
+       y = "Transpiration Rate (g/day)",
+       color = "Treatment",
+       shape = "Species") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+
+
+
+
+
+
+
+
+# View the first few rows of the transformed data
+head(Transpiration_rate_long)
+
+# Check the structure of the data to ensure everything is as expected
+str(Transpiration_rate_long)
 
 
 

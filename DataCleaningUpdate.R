@@ -128,6 +128,19 @@ alltogether <- alltogether %>%
     grepl("S\\+T", Species_Treatment) ~ "S+T"
   ))
 
+#11/9/24 update
+alltogether <- alltogether %>%
+  mutate(Species = case_when(
+    grepl("NM", Species) ~ "NM",
+    grepl("RP", Species) ~ "RP",
+    grepl("SP", Species) ~ "SP",
+    grepl("TC", Species) ~ "TC",
+    grepl("R\\+S", Species) ~ "R+S",
+    grepl("S\\+T", Species) ~ "S+T",
+    TRUE ~ as.character(Species) # Preserves unmatched values
+  ))
+#end of 11/9/24 update
+
 alltogether$Species <- factor(alltogether$Species,
                               levels = c("NM", "RP", "SP", "TC", "R+S", "S+T"))
 
@@ -958,3 +971,16 @@ ggplot(lys_long_up, aes(x = DateTime, y = Transpiration_Rate, color = Treatment,
   scale_color_manual(values = c("control" = "blue", "drought" = "red")) +  # Specify treatment colors
   guides(color = guide_legend(override.aes = list(shape = c(16, 17)))) +  # Adjust legend appearance
   facet_wrap(~ Species, ncol = 3)  # Set to 3 columns to arrange mini graphs in rows
+
+
+#11/9/24 update to fix S+T species category- NA displayed, not S+T
+colnames(Harvest_Data_LB)
+
+# Merge Harvest_Data_LB with the Species column from alltogether
+Harvest_Data_LB <- merge(Harvest_Data_LB, alltogether[, c("ID", "Species")], by = "ID", all.x = TRUE)
+
+# Check the unique values in the Species column of alltogether
+unique(alltogether$Species)
+
+
+
