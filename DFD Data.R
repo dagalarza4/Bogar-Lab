@@ -1139,56 +1139,44 @@ Transpiration_rate_dataset <- days_measured %>%
 Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
   mutate(Date = as.Date(Dates, format = "%m/%d/%y"))
 
+# Join the calculated transpiration rate columns from Lysimetry_calculated to Transpiration_rate_dataset
+Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
+  left_join(Lysimetry_calculated %>% select(ID, starts_with("Transpiration_Rate")), by = "ID")
+
+#Reshape the 'days_measured' dataset into a key-value pair where each 'Transpiration_Rate_#' is matched with the corresponding 'Date'
+date_mapping <- days_measured %>%
+  rename(Date = Dates, Transpiration_Rate_Column = `Transpiration Rate Column`)
+
+#Adding the new Date and Transpiration Rate info from the 'date_mapping' dataset
+Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
+  mutate(
+    Date = rep(date_mapping$Date, each = nrow(Transpiration_rate_dataset) / length(date_mapping$Date)),
+    Transpiration_Rate_Column = rep(date_mapping$Transpiration_Rate_Column, each = nrow(Transpiration_rate_dataset) / length(date_mapping$Transpiration_Rate_Column))
+  )
+
+library(dplyr)
+library(tidyr)
+
+# Rename or remove the existing 'Transpiration_Rate_Column' to avoid conflict
+Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
+  select(-`Transpiration_Rate_Column`) # Remove the conflicting column
+
+# Reshape the dataset
+Transpiration_rate_long <- Transpiration_rate_dataset %>%
+  pivot_longer(
+    cols = starts_with("Transpiration_Rate_"), # Matches only transpiration rate columns
+    names_to = "Transpiration_Rate_Column",    # Column to hold original column names
+    values_to = "Transpiration_Rate_Value"     # Column to hold the values
+  )
+
+#Delete the date column
+Transpiration_rate_long <- Transpiration_rate_long %>%
+  select(-`Date`) # Remove the conflicting column
 
 ####Saved up to here ####
 
 
 
-# Join the calculated transpiration rate columns from Lysimetry_calculated to Transpiration_rate_dataset
-Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
-  left_join(Lysimetry_calculated %>% select(ID, starts_with("Transpiration_Rate")), by = "ID")
-
-
 #Time for the graph
-
-
-# Pivot longer to create a long format dataset for plotting
-Transpiration_rate_long <- Transpiration_rate_dataset %>%
-  pivot_longer(cols = starts_with("Transpiration_Rate"), 
-               names_to = "Time_Period", 
-               values_to = "Transpiration_Rate")
-
-# Plot the graph using 'dates' as the x-axis
-ggplot(Transpiration_rate_long, aes(x = Dates, y = Transpiration_Rate, color = Treatment, shape = Species)) +
-  geom_line() +
-  geom_point() +
-  labs(title = "Transpiration Rates by Species and Treatment Over Time",
-       x = "Date",
-       y = "Transpiration Rate (g/day)",
-       color = "Treatment",
-       shape = "Species") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-
-
-
-
-
-
-
-
-
-# View the first few rows of the transformed data
-head(Transpiration_rate_long)
-
-# Check the structure of the data to ensure everything is as expected
-str(Transpiration_rate_long)
-
-
-
-
-
 
 
