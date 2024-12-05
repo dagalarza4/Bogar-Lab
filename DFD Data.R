@@ -1175,8 +1175,115 @@ Transpiration_rate_long <- Transpiration_rate_long %>%
 
 ####Saved up to here ####
 
+#New graph using 'Transpiration+Rates' excel spreadsheet
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(zoo)
+
+transpiration_data <- read_xlsx("Transpiration+Rates.xlsx")
+
+#Filter out harvested plants
+filtered_data <- transpiration_data %>%
+  filter(Drought_Status != "harvested")
+
+#Panel A: Control plants before drought
+panel_a_data <- filtered_data %>%
+  filter(Drought_Status == "before_drought", Treatment == "control") %>%
+  group_by(Date, Species) %>%
+  summarise(Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE), .groups = "drop")
+
+# Fill missing dates and interpolate missing values for Panel A
+panel_a_data <- filtered_data %>%
+  filter(Drought_Status == "before_drought", Treatment == "control") %>%
+  group_by(Date, Species) %>%
+  summarise(
+    Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  group_by(Species) %>%
+  complete(Date = seq(min(Date), max(Date), by = "day")) %>%  # Fill missing dates
+  mutate(Average_Transpiration = na.approx(Average_Transpiration, na.rm = FALSE)) %>%  # Interpolate missing values
+  ungroup()
+
+# Calculate and remove outliers for Panel A data
+panel_a_data <- filtered_data %>%
+  filter(Drought_Status == "before_drought", Treatment == "control") %>%
+  group_by(Date, Species) %>%
+  summarise(
+    Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  group_by(Species) %>%
+  complete(Date = seq(min(Date), max(Date), by = "day")) %>%  # Fill missing dates
+  mutate(Average_Transpiration = na.approx(Average_Transpiration, na.rm = FALSE)) %>%  # Interpolate missing values
+  ungroup() %>%
+  # Detect and remove outliers
+  group_by(Species) %>%
+  mutate(
+    Q1 = quantile(Average_Transpiration, 0.25, na.rm = TRUE),
+    Q3 = quantile(Average_Transpiration, 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1,
+    Lower_Bound = Q1 - 1.5 * IQR,
+    Upper_Bound = Q3 + 1.5 * IQR
+  ) %>%
+  filter(
+    Average_Transpiration >= Lower_Bound & Average_Transpiration <= Upper_Bound | is.na(Average_Transpiration)
+  ) %>%
+  select(-Q1, -Q3, -IQR, -Lower_Bound, -Upper_Bound) 
+
+# Define the color mapping for each species
+species_colors <- c(
+  "NM" = "red",
+  "SP" = "blue",
+  "RP" = "green",
+  "TC" = "purple", 
+  "S+T" = "pink",
+  "R+S" = "gold"
+)
+
+# Create the graph with manual color assignment
+panel_a_graph <- ggplot(panel_a_data, aes(x = Date, y = Average_Transpiration, color = Species)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_color_manual(values = species_colors) +  # Assign colors to species
+  labs(
+    title = "Average Transpiration Rate Before Drought",
+    x = "Date",
+    y = "Average Transpiration Rate (g)",
+    color = "Species"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    legend.position = "bottom"
+  )
+print(panel_a_graph)
 
 
-#Time for the graph
 
 
+
+
+
+# Panel B: Drought plants during drought
+panel_b_data <- filtered_data %>%
+  filter(Drought_Status == "during_drought", Treatment == "drought") %>%
+  group_by(Date, Species) %>%
+  summarise(Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE), .groups = "drop")
+
+# Panel B: During Drought (Drought plants)
+plot_b <- ggplot(panel_b_data, aes(x = Date, y = Average_Transpiration, color = Species)) +
+  geom_line(size = 1) +
+  labs(
+    title = "Average Transpiration Rates During Drought",
+    x = "Date",
+    y = "Average Transpiration Rate",
+    color = "Species"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(size = 16, face = "bold")
+  )
+print(plot_b)
