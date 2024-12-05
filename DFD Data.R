@@ -1241,22 +1241,50 @@ panel_a_graph <- ggplot(panel_a_data, aes(x = Date, y = Average_Transpiration, c
   )
 print(panel_a_graph)
 
-####Saved up to here ####
 
 #Transpiration rate by % colonization graph
-
 trans_by_perccol_data <- filtered_data %>%
-  filter(Drought_Status == "before_drought", Treatment == "control") %>%
+  filter(Drought_Status == "before_drought") %>%
   group_by(Date, Species, Plant_ID) %>%
   summarise(Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE), .groups = "drop")
 
 
 # Join both by Species and Plant_ID
-panel_a_data <- panel_a_data %>%
+trans_by_perccol_data <- trans_by_perccol_data %>%
   left_join(Harvest_Data_LB, by = c("Species", "Plant_ID"))
 
-# Check the result
-head(panel_a_data)
+# Define colors for species
+species_colors <- c(
+  "NM" = "tomato",
+  "SP" = "green3",
+  "RP" = "goldenrod",
+  "TC" = "darkturquoise", 
+  "S+T" = "magenta",
+  "R+S" = "dodgerblue"
+)
+
+# Create the plot
+trans_by_perccol <- ggplot(trans_by_perccol_data, aes(x = perccol, y = Average_Transpiration, color = Species)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_color_manual(values = species_colors) +
+  labs(
+    title = "Average Transpiration Rate by Percent Colonization",
+    x = "Percent Colonization",
+    y = "Average Transpiration Rate (g)",
+    color = "Species"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    legend.position = "bottom"
+  )
+print(trans_by_perccol)
+
+####Saved up to here ####
+
+
+
 
 
 
