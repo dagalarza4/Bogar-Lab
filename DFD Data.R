@@ -16,30 +16,6 @@ names(Harvest_Data)
 treatments = read_csv("Treatment_key.csv") %>%
   mutate(ID = Plant_ID)
 
-
-#11/9/24 update to fix S+T species category- NA displayed, not S+T
-# Check for any remaining NA values in the 'Species' column
-sum(is.na(Harvest_Data_LB$Species))
-# Replace any remaining NA values in the 'Species' column with "S+T"
-Harvest_Data_LB$Species[is.na(Harvest_Data_LB$Species)] <- "S+T"
-# Add "S+T" as a level to the 'Species' factor
-levels(Harvest_Data_LB$Species) <- c(levels(Harvest_Data_LB$Species), "S+T")
-# Replace NA values in 'Species' with "S+T"
-Harvest_Data_LB$Species[is.na(Harvest_Data_LB$Species)] <- "S+T"
-# Check the unique values in the 'Species' column
-unique(Harvest_Data_LB$Species)
-# Check the factor levels of 'Species'
-levels(Harvest_Data_LB$Species)
-# Check the count of each species
-table(Harvest_Data_LB$Species)
-# Remove the 'T+C' level from the Species factor
-Harvest_Data_LB$Species <- factor(Harvest_Data_LB$Species, levels = levels(Harvest_Data_LB$Species)[levels(Harvest_Data_LB$Species) != "T+C"])
-# Check the unique values in the 'Species' column
-unique(Harvest_Data_LB$Species)
-# Check the factor levels of 'Species'
-levels(Harvest_Data_LB$Species)
-# Check the count of each species
-table(Harvest_Data_LB$Species)
 # Create a backup of the cleaned data
 Harvest_Data_Clean <- Harvest_Data_LB
 
@@ -1190,14 +1166,14 @@ filtered_data <- transpiration_data %>%
 
 #Panel A: Control plants before drought
 panel_a_data <- filtered_data %>%
-  filter(Drought_Status == "before_drought", Treatment == "control") %>%
-  group_by(Date, Species) %>%
+  filter(Drought_Status == "before_drought") %>%
+  group_by(Date, Species, Plant_ID) %>%
   summarise(Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE), .groups = "drop")
 
 # Fill missing dates and interpolate missing values for Panel A
 panel_a_data <- filtered_data %>%
-  filter(Drought_Status == "before_drought", Treatment == "control") %>%
-  group_by(Date, Species) %>%
+  filter(Drought_Status == "before_drought") %>%
+  group_by(Date, Species, Plant_ID) %>%
   summarise(
     Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE),
     .groups = "drop"
@@ -1209,7 +1185,7 @@ panel_a_data <- filtered_data %>%
 
 # Calculate and remove outliers for Panel A data
 panel_a_data <- filtered_data %>%
-  filter(Drought_Status == "before_drought", Treatment == "control") %>%
+  filter(Drought_Status == "before_drought") %>%
   group_by(Date, Species) %>%
   summarise(
     Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE),
@@ -1236,8 +1212,6 @@ panel_a_data <- filtered_data %>%
 #Set the order of the species
 panel_a_data <- panel_a_data %>%
   mutate(Species = factor(Species, levels = c("NM", "RP", "SP", "TC", "R+S", "S+T")))
-levels(panel_a_data$Species)
-unique(panel_a_data$Species)
 
 # Define the color mapping for each species
 species_colors <- c(
@@ -1269,6 +1243,20 @@ print(panel_a_graph)
 
 ####Saved up to here ####
 
+#Transpiration rate by % colonization graph
+
+trans_by_perccol_data <- filtered_data %>%
+  filter(Drought_Status == "before_drought", Treatment == "control") %>%
+  group_by(Date, Species, Plant_ID) %>%
+  summarise(Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE), .groups = "drop")
+
+
+# Join both by Species and Plant_ID
+panel_a_data <- panel_a_data %>%
+  left_join(Harvest_Data_LB, by = c("Species", "Plant_ID"))
+
+# Check the result
+head(panel_a_data)
 
 
 
