@@ -1281,35 +1281,59 @@ trans_by_perccol <- ggplot(trans_by_perccol_data, aes(x = perccol, y = Average_T
   )
 print(trans_by_perccol)
 
-####Saved up to here ####
 
+#Drought Plant Transpiration Rate 2 Days B4 Harvest Graph
+harvest_days <- read_excel("Lysimetry+Info.xlsx", sheet = "Harvest Days") %>%
+  rename(Plant_ID = ID)
 
+# Step 2: Prepare the data for drought plants with generalized day labels
+plot_b_data <- filtered_data %>%
+  filter(Treatment == "drought") %>%
+  left_join(harvest_days, by = "Plant_ID") %>%
+  mutate(
+    Day_Label = case_when(
+      Date == as.Date(LastDay2, format = "%m/%d/%y") ~ "1 Day Before Harvest",
+      Date == as.Date(LastDay1, format = "%m/%d/%y") ~ "2 Days Before Harvest",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(Day_Label)) %>%  # Keep only rows with Day_Label
+  group_by(Day_Label, Species) %>%
+  summarise(
+    Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE),
+    .groups = "drop"
+  )
 
+# Step 3: Define colors for species
+species_colors <- c(
+  "NM" = "tomato",
+  "SP" = "green3",
+  "RP" = "goldenrod",
+  "TC" = "darkturquoise", 
+  "S+T" = "magenta",
+  "R+S" = "dodgerblue"
+)
 
+plot_b_data <- plot_b_data %>%
+  mutate(Day_Label = factor(Day_Label, levels = c("2 Days Before Harvest", "1 Day Before Harvest")))
 
-
-
-
-
-
-# Panel B: Drought plants during drought
-panel_b_data <- filtered_data %>%
-  filter(Drought_Status == "during_drought", Treatment == "drought") %>%
-  group_by(Date, Species) %>%
-  summarise(Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE), .groups = "drop")
-
-# Panel B: During Drought (Drought plants)
-plot_b <- ggplot(panel_b_data, aes(x = Date, y = Average_Transpiration, color = Species)) +
+# Step 4: Create the plot with new x-axis labels
+plot_b <- ggplot(plot_b_data, aes(x = Day_Label, y = Average_Transpiration, color = Species, group = Species)) +
   geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_color_manual(values = species_colors) +
   labs(
-    title = "Average Transpiration Rates During Drought",
-    x = "Date",
-    y = "Average Transpiration Rate",
+    title = "Average Transpiration Rate 2 Days Before Harvest for Drought Plants",
+    x = "",
+    y = "Average Transpiration Rate (g/hr)",
     color = "Species"
   ) +
-  theme_minimal(base_size = 14) +
+  theme_minimal() +
   theme(
-    legend.position = "right",
-    plot.title = element_text(size = 16, face = "bold")
+    text = element_text(size = 14),
+    legend.position = "bottom"
   )
 print(plot_b)
+
+
+####Saved up to here ####
