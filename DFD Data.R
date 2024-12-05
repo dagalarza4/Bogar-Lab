@@ -1173,7 +1173,8 @@ Transpiration_rate_long <- Transpiration_rate_dataset %>%
 Transpiration_rate_long <- Transpiration_rate_long %>%
   select(-`Date`) # Remove the conflicting column
 
-####Saved up to here ####
+
+
 
 #New graph using 'Transpiration+Rates' excel spreadsheet
 library(ggplot2)
@@ -1232,21 +1233,27 @@ panel_a_data <- filtered_data %>%
   ) %>%
   select(-Q1, -Q3, -IQR, -Lower_Bound, -Upper_Bound) 
 
+#Set the order of the species
+panel_a_data <- panel_a_data %>%
+  mutate(Species = factor(Species, levels = c("NM", "RP", "SP", "TC", "R+S", "S+T")))
+levels(panel_a_data$Species)
+unique(panel_a_data$Species)
+
 # Define the color mapping for each species
 species_colors <- c(
-  "NM" = "red",
-  "SP" = "blue",
-  "RP" = "green",
-  "TC" = "purple", 
-  "S+T" = "pink",
-  "R+S" = "gold"
+  "NM" = "tomato",
+  "SP" = "green3",
+  "RP" = "goldenrod",
+  "TC" = "darkturquoise", 
+  "S+T" = "magenta",
+  "R+S" = "dodgerblue"
 )
 
 # Create the graph with manual color assignment
 panel_a_graph <- ggplot(panel_a_data, aes(x = Date, y = Average_Transpiration, color = Species)) +
   geom_line(size = 1) +
   geom_point(size = 2) +
-  scale_color_manual(values = species_colors) +  # Assign colors to species
+  scale_color_manual(values = species_colors, breaks = c("NM", "RP", "SP", "TC", "R+S", "S+T")) +
   labs(
     title = "Average Transpiration Rate Before Drought",
     x = "Date",
@@ -1259,6 +1266,9 @@ panel_a_graph <- ggplot(panel_a_data, aes(x = Date, y = Average_Transpiration, c
     legend.position = "bottom"
   )
 print(panel_a_graph)
+
+####Saved up to here ####
+
 
 
 
