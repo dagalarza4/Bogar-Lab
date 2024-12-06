@@ -1095,63 +1095,6 @@ Lysimetry_calculated <- data.frame(
   Transpiration_Rate_34 = Lysimetry_Super_Update$Transpiration_rate_08_15_08_16
 )
 
-
-
-#Create a new dataset
-library(readr)
-library(dplyr)
-library(tidyr)
-library(lubridate)
-library(readxl)
-
-days_measured <- read_excel("Lysimetry+Info.xlsx", sheet = "Days Measured")
-
-#Creating a new dataset
-Transpiration_rate_dataset <- days_measured %>%
-  expand_grid(ID = treatments$ID) %>%  # Create all combinations of Dates and Plant IDs
-  left_join(treatments, by = "ID")      # Join the treatments info based on the 'ID' column
-
-# Convert the 'Dates' column to correct Date format
-Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
-  mutate(Date = as.Date(Dates, format = "%m/%d/%y"))
-
-# Join the calculated transpiration rate columns from Lysimetry_calculated to Transpiration_rate_dataset
-Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
-  left_join(Lysimetry_calculated %>% select(ID, starts_with("Transpiration_Rate")), by = "ID")
-
-#Reshape the 'days_measured' dataset into a key-value pair where each 'Transpiration_Rate_#' is matched with the corresponding 'Date'
-date_mapping <- days_measured %>%
-  rename(Date = Dates, Transpiration_Rate_Column = `Transpiration Rate Column`)
-
-#Adding the new Date and Transpiration Rate info from the 'date_mapping' dataset
-Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
-  mutate(
-    Date = rep(date_mapping$Date, each = nrow(Transpiration_rate_dataset) / length(date_mapping$Date)),
-    Transpiration_Rate_Column = rep(date_mapping$Transpiration_Rate_Column, each = nrow(Transpiration_rate_dataset) / length(date_mapping$Transpiration_Rate_Column))
-  )
-
-library(dplyr)
-library(tidyr)
-
-# Rename or remove the existing 'Transpiration_Rate_Column' to avoid conflict
-Transpiration_rate_dataset <- Transpiration_rate_dataset %>%
-  select(-`Transpiration_Rate_Column`) # Remove the conflicting column
-
-# Reshape the dataset
-Transpiration_rate_long <- Transpiration_rate_dataset %>%
-  pivot_longer(
-    cols = starts_with("Transpiration_Rate_"), # Matches only transpiration rate columns
-    names_to = "Transpiration_Rate_Column",    # Column to hold original column names
-    values_to = "Transpiration_Rate_Value"     # Column to hold the values
-  )
-
-#Delete the date column
-Transpiration_rate_long <- Transpiration_rate_long %>%
-  select(-`Date`) # Remove the conflicting column
-
-
-
-
 #New graph using 'Transpiration+Rates' excel spreadsheet
 library(ggplot2)
 library(dplyr)
@@ -1242,7 +1185,7 @@ panel_a_graph <- ggplot(panel_a_data, aes(x = Date, y = Average_Transpiration, c
 print(panel_a_graph)
 
 
-#Transpiration rate by % colonization graph
+#Transpiration rate by % colonization graph- control
 trans_by_perccol_data <- filtered_data %>%
   filter(Drought_Status == "before_drought") %>%
   group_by(Date, Species, Plant_ID) %>%
@@ -1286,7 +1229,7 @@ print(trans_by_perccol)
 harvest_days <- read_excel("Lysimetry+Info.xlsx", sheet = "Harvest Days") %>%
   rename(Plant_ID = ID)
 
-# Step 2: Prepare the data for drought plants with generalized day labels
+#Prepare the data for drought plants with generalized day labels
 plot_b_data <- filtered_data %>%
   filter(Treatment == "drought") %>%
   left_join(harvest_days, by = "Plant_ID") %>%
@@ -1304,7 +1247,7 @@ plot_b_data <- filtered_data %>%
     .groups = "drop"
   )
 
-# Step 3: Define colors for species
+#Define colors for species
 species_colors <- c(
   "NM" = "tomato",
   "SP" = "green3",
@@ -1317,7 +1260,7 @@ species_colors <- c(
 plot_b_data <- plot_b_data %>%
   mutate(Day_Label = factor(Day_Label, levels = c("2 Days Before Harvest", "1 Day Before Harvest")))
 
-# Step 4: Create the plot with new x-axis labels
+#Create the plot with new x-axis labels
 plot_b <- ggplot(plot_b_data, aes(x = Day_Label, y = Average_Transpiration, color = Species, group = Species)) +
   geom_line(size = 1) +
   geom_point(size = 2) +
@@ -1336,4 +1279,122 @@ plot_b <- ggplot(plot_b_data, aes(x = Day_Label, y = Average_Transpiration, colo
 print(plot_b)
 
 
-####Saved up to here ####
+#Transpiration rate by % colonization graph- drought
+filtered_data_D <- transpiration_data %>%
+  filter(Drought_Status != "harvested", Species != "NM")
+
+trans_by_perccol_drought <- filtered_data_D %>%
+  filter(Drought_Status == "during_drought") %>%
+  group_by(Date, Species, Plant_ID) %>%
+  summarise(Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE), .groups = "drop")
+
+# Join both by Species and Plant_ID
+trans_by_perccol_drought <- trans_by_perccol_drought %>%
+  left_join(Harvest_Data_LB, by = c("Species", "Plant_ID"))
+
+# Define colors for species
+species_colors <- c(
+  "NM" = "tomato",
+  "SP" = "green3",
+  "RP" = "goldenrod",
+  "TC" = "darkturquoise", 
+  "S+T" = "magenta",
+  "R+S" = "dodgerblue")
+
+# Create the plot
+trans_by_perccol_D <- ggplot(trans_by_perccol_drought, aes(x = perccol, y = Average_Transpiration, color = Species)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_color_manual(values = species_colors) +
+  labs(
+    title = "Drought Plants Average Transpiration Rate by Percent Colonization",
+    x = "Colonization (%)",
+    y = "Average Transpiration Rate (g/hr)",
+    color = "Species"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    legend.position = "bottom"
+  )
+print(trans_by_perccol_D)
+
+
+#Average transpiration rate 2 days b4 harvest by % colonization graph with both control and drought plants
+filtered_data_CD <- transpiration_data %>%
+  filter(Drought_Status != "harvested")
+
+# Combine control and drought data for the last 2 days before harvest
+combined_trans_by_perccol <- filtered_data_CD %>%
+  left_join(harvest_days, by = "Plant_ID") %>%
+  mutate(
+    Day_Label = case_when(
+      Date == as.Date(LastDay2, format = "%m/%d/%y") ~ "1 Day Before Harvest",
+      Date == as.Date(LastDay1, format = "%m/%d/%y") ~ "2 Days Before Harvest",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(Day_Label)) %>%  # Keep only rows with Day_Label
+  group_by(Treatment, Day_Label, Species) %>%
+  summarise(
+    Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(Day_Label = factor(Day_Label, levels = c("2 Days Before Harvest", "1 Day Before Harvest")))
+
+# Plot the combined data
+plot_combined_trans_by_perccol <- ggplot(combined_trans_by_perccol, aes(x = Day_Label, y = Average_Transpiration, color = Species, group = interaction(Species, Treatment), linetype = Treatment)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_color_manual(values = species_colors) +
+  scale_linetype_manual(values = c("control" = "solid", "drought" = "dashed")) +
+  labs(
+    title = "Average Transpiration Rate 2 Days Before Harvest",
+    x = "",
+    y = "Average Transpiration Rate (g/hr)",
+    color = "Species",
+    linetype = "Treatment"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    legend.position = "bottom")
+print(plot_combined_trans_by_perccol)
+
+
+#Graph for average transpiration rate 2 days b4 harvest by % colonization with both control and drought
+combined_data_colonization <- filtered_data_CD %>%
+  left_join(harvest_days, by = "Plant_ID") %>%
+  filter(
+    Date == as.Date(LastDay1, format = "%m/%d/%y") |
+      Date == as.Date(LastDay2, format = "%m/%d/%y")
+  ) %>%
+  left_join(Harvest_Data_LB %>% select(Plant_ID, `perccol`), by = "Plant_ID") %>%
+  filter(!is.na(`perccol`)) %>%
+  group_by(Treatment, `perccol`, Species) %>%
+  summarise(
+    Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Plot the data with percent colonization on the x-axis
+plot_colonization <- ggplot(combined_data_colonization, aes(x = `perccol`, y = Average_Transpiration, color = Species, linetype = Treatment)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_color_manual(values = species_colors) +
+  scale_linetype_manual(values = c("control" = "solid", "drought" = "dashed")) +
+  labs(
+    title = "Average Transpiration Rate by Percent Colonization 2 Days Before Harvest",
+    x = "Colonization (%)",
+    y = "Average Transpiration Rate (g/hr)",
+    color = "Species",
+    linetype = "Treatment"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    legend.position = "bottom"
+  )
+print(plot_colonization)
+
+####Saved up to here####
