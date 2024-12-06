@@ -386,7 +386,7 @@ ggplot(subset(Harvest_Data_Clean, Species != "NM" & perccol != 0), aes(x = percc
 
 
 
-#### Attempt at Time Differences- Lysimetry stuff ####
+#### Calculating transpiration rates ####
 library(readxl)
 Lysimetry_Updated <- read_excel("Lysimetry_Updated.xlsx")
 Lysimetry_Super_Update <- Lysimetry_Updated
@@ -1095,6 +1095,8 @@ Lysimetry_calculated <- data.frame(
   Transpiration_Rate_34 = Lysimetry_Super_Update$Transpiration_rate_08_15_08_16
 )
 
+####Control transpiration rate graph####
+
 #New graph using 'Transpiration+Rates' excel spreadsheet
 library(ggplot2)
 library(dplyr)
@@ -1163,10 +1165,9 @@ species_colors <- c(
   "RP" = "goldenrod",
   "TC" = "darkturquoise", 
   "S+T" = "magenta",
-  "R+S" = "dodgerblue"
-)
+  "R+S" = "dodgerblue")
 
-# Create the graph with manual color assignment
+# Create the graph 
 panel_a_graph <- ggplot(panel_a_data, aes(x = Date, y = Average_Transpiration, color = Species)) +
   geom_line(size = 1) +
   geom_point(size = 2) +
@@ -1174,23 +1175,30 @@ panel_a_graph <- ggplot(panel_a_data, aes(x = Date, y = Average_Transpiration, c
   labs(
     title = "Average Transpiration Rate Before Drought",
     x = "Date",
-    y = "Average Transpiration Rate (g)",
+    y = "Average Transpiration Rate (g/hr)",
     color = "Species"
   ) +
   theme_minimal() +
   theme(
     text = element_text(size = 14),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 print(panel_a_graph)
 
+#Control transpiration rate ANOVA statistics
+panel_a_anova_data <- panel_a_data %>%
+  filter(!is.na(Average_Transpiration)) %>%
+  mutate(Date = as.factor(Date))
 
-#Transpiration rate by % colonization graph- control
+panel_a_anova <- aov(Average_Transpiration ~ Species + Date + Species:Date, data = panel_a_anova_data)
+
+summary(panel_a_anova)
+
+
+####Control transpiration rate by % colonization graph####
 trans_by_perccol_data <- filtered_data %>%
   filter(Drought_Status == "before_drought") %>%
   group_by(Date, Species, Plant_ID) %>%
   summarise(Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE), .groups = "drop")
-
 
 # Join both by Species and Plant_ID
 trans_by_perccol_data <- trans_by_perccol_data %>%
@@ -1203,8 +1211,7 @@ species_colors <- c(
   "RP" = "goldenrod",
   "TC" = "darkturquoise", 
   "S+T" = "magenta",
-  "R+S" = "dodgerblue"
-)
+  "R+S" = "dodgerblue")
 
 # Create the plot
 trans_by_perccol <- ggplot(trans_by_perccol_data, aes(x = perccol, y = Average_Transpiration, color = Species)) +
@@ -1213,19 +1220,25 @@ trans_by_perccol <- ggplot(trans_by_perccol_data, aes(x = perccol, y = Average_T
   scale_color_manual(values = species_colors) +
   labs(
     title = "Average Transpiration Rate by Percent Colonization",
-    x = "Percent Colonization",
-    y = "Average Transpiration Rate (g)",
-    color = "Species"
-  ) +
+    x = "Colonization (%)",
+    y = "Average Transpiration Rate (g/hr)",
+    color = "Species") +
   theme_minimal() +
   theme(
     text = element_text(size = 14),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 print(trans_by_perccol)
 
+#Control transpiration rate by % colonization ANOVA statistics
+trans_by_perccol_data <- trans_by_perccol_data %>%
+  filter(!is.na(Average_Transpiration), !is.na(perccol))
 
-#Drought Plant Transpiration Rate 2 Days B4 Harvest Graph
+trans_by_perccol_anova <- aov(Average_Transpiration ~ Species * perccol, data = trans_by_perccol_data)
+
+summary(trans_by_perccol_anova)
+
+
+####Drought transpiration rate 2 Days B4 harvest graph####
 harvest_days <- read_excel("Lysimetry+Info.xlsx", sheet = "Harvest Days") %>%
   rename(Plant_ID = ID)
 
@@ -1237,15 +1250,12 @@ plot_b_data <- filtered_data %>%
     Day_Label = case_when(
       Date == as.Date(LastDay2, format = "%m/%d/%y") ~ "1 Day Before Harvest",
       Date == as.Date(LastDay1, format = "%m/%d/%y") ~ "2 Days Before Harvest",
-      TRUE ~ NA_character_
-    )
-  ) %>%
+      TRUE ~ NA_character_)) %>%
   filter(!is.na(Day_Label)) %>%  # Keep only rows with Day_Label
   group_by(Day_Label, Species) %>%
   summarise(
     Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE),
-    .groups = "drop"
-  )
+    .groups = "drop")
 
 #Define colors for species
 species_colors <- c(
@@ -1254,8 +1264,7 @@ species_colors <- c(
   "RP" = "goldenrod",
   "TC" = "darkturquoise", 
   "S+T" = "magenta",
-  "R+S" = "dodgerblue"
-)
+  "R+S" = "dodgerblue")
 
 plot_b_data <- plot_b_data %>%
   mutate(Day_Label = factor(Day_Label, levels = c("2 Days Before Harvest", "1 Day Before Harvest")))
@@ -1266,20 +1275,28 @@ plot_b <- ggplot(plot_b_data, aes(x = Day_Label, y = Average_Transpiration, colo
   geom_point(size = 2) +
   scale_color_manual(values = species_colors) +
   labs(
-    title = "Average Transpiration Rate 2 Days Before Harvest for Drought Plants",
+    title = "Drought Plants Average Transpiration Rate 2 days Before Harvest",
     x = "",
     y = "Average Transpiration Rate (g/hr)",
-    color = "Species"
-  ) +
+    color = "Species") +
   theme_minimal() +
   theme(
     text = element_text(size = 14),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 print(plot_b)
 
+#Drought transpiration rate 2 Days B4 harvest ANOVA test
+plot_b_anova_data <- plot_b_data %>%
+  mutate(
+    Day_Label = factor(Day_Label, levels = c("2 Days Before Harvest", "1 Day Before Harvest")),
+    Species = as.factor(Species))
 
-#Transpiration rate by % colonization graph- drought
+plot_b_anova <- aov(Average_Transpiration ~ Day_Label * Species, data = plot_b_anova_data)
+
+summary(plot_b_anova)
+
+
+####Drought transpiration rate by % colonization graph####
 filtered_data_D <- transpiration_data %>%
   filter(Drought_Status != "harvested", Species != "NM")
 
@@ -1310,40 +1327,50 @@ trans_by_perccol_D <- ggplot(trans_by_perccol_drought, aes(x = perccol, y = Aver
     title = "Drought Plants Average Transpiration Rate by Percent Colonization",
     x = "Colonization (%)",
     y = "Average Transpiration Rate (g/hr)",
-    color = "Species"
-  ) +
+    color = "Species") +
   theme_minimal() +
   theme(
     text = element_text(size = 14),
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 print(trans_by_perccol_D)
 
+#Drought transpiration rate by % colonization ANOVA test
+trans_by_perccol_drought_anova_data <- trans_by_perccol_drought %>%
+  mutate(
+    perccol = as.numeric(perccol), 
+    Species = as.factor(Species))
 
-#Average transpiration rate 2 days b4 harvest by % colonization graph with both control and drought plants
+library(lme4)
+
+# Fit the model
+lmm_trans_perccol_D <- lmer(Average_Transpiration ~ perccol * Species + (1 | Plant_ID), data = trans_by_perccol_drought_anova_data)
+
+summary(lmm_trans_perccol_D)
+
+anova(lmm_trans_perccol_D)
+
+
+####Combined Transpiration rate 2 days b4 harvest graph####
 filtered_data_CD <- transpiration_data %>%
   filter(Drought_Status != "harvested")
 
 # Combine control and drought data for the last 2 days before harvest
-combined_trans_by_perccol <- filtered_data_CD %>%
+combined_trans_2_days_b4 <- filtered_data_CD %>%
   left_join(harvest_days, by = "Plant_ID") %>%
   mutate(
     Day_Label = case_when(
       Date == as.Date(LastDay2, format = "%m/%d/%y") ~ "1 Day Before Harvest",
       Date == as.Date(LastDay1, format = "%m/%d/%y") ~ "2 Days Before Harvest",
-      TRUE ~ NA_character_
-    )
-  ) %>%
+      TRUE ~ NA_character_)) %>%
   filter(!is.na(Day_Label)) %>%  # Keep only rows with Day_Label
   group_by(Treatment, Day_Label, Species) %>%
   summarise(
     Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
+    .groups = "drop") %>%
   mutate(Day_Label = factor(Day_Label, levels = c("2 Days Before Harvest", "1 Day Before Harvest")))
 
 # Plot the combined data
-plot_combined_trans_by_perccol <- ggplot(combined_trans_by_perccol, aes(x = Day_Label, y = Average_Transpiration, color = Species, group = interaction(Species, Treatment), linetype = Treatment)) +
+plot_combined_trans_2_days_b4 <- ggplot(combined_trans_2_days_b4, aes(x = Day_Label, y = Average_Transpiration, color = Species, group = interaction(Species, Treatment), linetype = Treatment)) +
   geom_line(size = 1) +
   geom_point(size = 2) +
   scale_color_manual(values = species_colors) +
@@ -1353,16 +1380,21 @@ plot_combined_trans_by_perccol <- ggplot(combined_trans_by_perccol, aes(x = Day_
     x = "",
     y = "Average Transpiration Rate (g/hr)",
     color = "Species",
-    linetype = "Treatment"
-  ) +
+    linetype = "Treatment") +
   theme_minimal() +
   theme(
     text = element_text(size = 14),
     legend.position = "bottom")
-print(plot_combined_trans_by_perccol)
+print(plot_combined_trans_2_days_b4)
+
+#Combined transpiration rate 2 days b4 harvest ANOVA test
+combined_trans_2_days_b4_anova <- aov(Average_Transpiration ~ Treatment * Day_Label * Species,
+                                       data = combined_trans_2_days_b4)
+
+summary(combined_trans_2_days_b4)
 
 
-#Graph for average transpiration rate 2 days b4 harvest by % colonization with both control and drought
+####Combined transpiration rate 2 days b4 harvest by % colonization graph####
 combined_data_colonization <- filtered_data_CD %>%
   left_join(harvest_days, by = "Plant_ID") %>%
   filter(
@@ -1374,11 +1406,10 @@ combined_data_colonization <- filtered_data_CD %>%
   group_by(Treatment, `perccol`, Species) %>%
   summarise(
     Average_Transpiration = mean(Transpiration_rate_value, na.rm = TRUE),
-    .groups = "drop"
-  )
+    .groups = "drop")
 
 # Plot the data with percent colonization on the x-axis
-plot_colonization <- ggplot(combined_data_colonization, aes(x = `perccol`, y = Average_Transpiration, color = Species, linetype = Treatment)) +
+plot_trans_by_colonization <- ggplot(combined_data_colonization, aes(x = `perccol`, y = Average_Transpiration, color = Species, linetype = Treatment)) +
   geom_line(size = 1) +
   geom_point(size = 2) +
   scale_color_manual(values = species_colors) +
@@ -1388,13 +1419,85 @@ plot_colonization <- ggplot(combined_data_colonization, aes(x = `perccol`, y = A
     x = "Colonization (%)",
     y = "Average Transpiration Rate (g/hr)",
     color = "Species",
-    linetype = "Treatment"
-  ) +
+    linetype = "Treatment") +
   theme_minimal() +
   theme(
     text = element_text(size = 14),
-    legend.position = "bottom"
-  )
-print(plot_colonization)
+    legend.position = "bottom")
+print(plot_trans_by_colonization)
+
+#Combined transpiration rate 2 days b4 by % colonization ANOVA test
+combined_data_colonization <- combined_data_colonization %>%
+  mutate(
+    Treatment = as.factor(Treatment),
+    Species = as.factor(Species),
+    `perccol` = as.factor(`perccol`))
+
+combined_colonization_anova <- aov(Average_Transpiration ~ Treatment * `perccol` * Species, data = combined_data_colonization)
+
+summary(combined_colonization_anova)
+
+####Statistical Tests####
+
+#Control transpiration rate ANOVA statistics
+panel_a_anova_data <- panel_a_data %>%
+  filter(!is.na(Average_Transpiration)) %>%
+  mutate(Date = as.factor(Date))
+
+panel_a_anova <- aov(Average_Transpiration ~ Species + Date + Species:Date, data = panel_a_anova_data)
+
+summary(panel_a_anova)
+
+#Control transpiration rate by % colonization ANOVA statistics
+trans_by_perccol_data <- trans_by_perccol_data %>%
+  filter(!is.na(Average_Transpiration), !is.na(perccol))
+
+trans_by_perccol_anova <- aov(Average_Transpiration ~ Species * perccol, data = trans_by_perccol_data)
+
+summary(trans_by_perccol_anova)
+
+#Drought transpiration rate 2 Days B4 harvest ANOVA test
+plot_b_anova_data <- plot_b_data %>%
+  mutate(
+    Day_Label = factor(Day_Label, levels = c("2 Days Before Harvest", "1 Day Before Harvest")),
+    Species = as.factor(Species))
+
+plot_b_anova <- aov(Average_Transpiration ~ Day_Label * Species, data = plot_b_anova_data)
+
+summary(plot_b_anova)
+
+#Drought transpiration rate by % colonization ANOVA test
+trans_by_perccol_drought_anova_data <- trans_by_perccol_drought %>%
+  mutate(
+    perccol = as.numeric(perccol), 
+    Species = as.factor(Species))
+
+library(lme4)
+
+lmm_trans_perccol_D <- lmer(Average_Transpiration ~ perccol * Species + (1 | Plant_ID), data = trans_by_perccol_drought_anova_data)
+
+summary(lmm_trans_perccol_D)
+
+anova(lmm_trans_perccol_D)
+
+#Combined transpiration rate 2 days b4 harvest ANOVA test
+combined_trans_2_days_b4_anova <- aov(Average_Transpiration ~ Treatment * Day_Label * Species,
+                                      data = combined_trans_2_days_b4)
+
+summary(combined_trans_2_days_b4)
+
+#Combined transpiration rate 2 days b4 by % colonization ANOVA test
+combined_data_colonization <- combined_data_colonization %>%
+  mutate(
+    Treatment = as.factor(Treatment),
+    Species = as.factor(Species),
+    `perccol` = as.factor(`perccol`))
+
+combined_colonization_anova <- aov(Average_Transpiration ~ Treatment * `perccol` * Species, data = combined_data_colonization)
+
+summary(combined_colonization_anova)
 
 ####Saved up to here####
+
+
+
