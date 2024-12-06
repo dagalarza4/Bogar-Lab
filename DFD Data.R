@@ -165,6 +165,10 @@ summary(Root_to_Shoot_Ratio_by_Species)
 Root_to_Shoot_Ratio_by_Treatment <- aov(`Root_to_Shoot_Ratio` ~ Treatment, data = Harvest_Data_Clean)
 summary(Root_to_Shoot_Ratio_by_Treatment)
 
+#Root:Shoot Ratio by Treatment and Species (not sig)
+Root_to_Shoot_Ratio_by_T_S <- aov(`Root_to_Shoot_Ratio` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Root_to_Shoot_Ratio_by_T_S)
+
 #Root DW by Species (not significant)
 Root_DW_by_Species <- aov(`Root_DW` ~ Species, data = Harvest_Data_Clean)
 summary(Root_DW_by_Species)
@@ -173,6 +177,10 @@ summary(Root_DW_by_Species)
 Root_DW_by_Treatment <- aov(`Root_DW` ~ Treatment, data = Harvest_Data_Clean)
 summary(Root_DW_by_Treatment)
 
+#Root DW by Species and Treatment (not significant)
+Root_DW_by_ST <- aov(`Root_DW` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Root_DW_by_ST)
+
 #Root FW by Species (not significant)
 Root_FW_by_Species <- aov(`Root_FW_before` ~ Species, data = Harvest_Data_Clean)
 summary(Root_FW_by_Species)
@@ -180,6 +188,10 @@ summary(Root_FW_by_Species)
 #Root FW by Treatment (not significant)
 Root_FW_by_Treatment <- aov(`Root_FW_before` ~ Treatment, data = Harvest_Data_Clean)
 summary(Root_FW_by_Treatment)
+
+#Root FW by Species and Treatment (not significant)
+Root_FW_by_ST <- aov(`Root_FW_before` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Root_FW_by_ST)
 
 #Shoot DW by Species (Significant, RP-R+S, SP-R+S)
 Shoot_DW_by_Species <- aov(`Shoot_DW` ~ Species, data = Harvest_Data_Clean)
@@ -190,6 +202,10 @@ TukeyHSD(Shoot_DW_by_Species)
 Shoot_DW_by_Treatment <- aov(`Shoot_DW` ~ Treatment, data = Harvest_Data_Clean)
 summary(Shoot_DW_by_Treatment)
 
+#Shoot DW by Species and Treatment (not significant)
+Shoot_DW_by_ST <- aov(`Shoot_DW` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Shoot_DW_by_ST)
+
 #Shoot FW by Species (Significant)
 Shoot_FW_by_Species <- aov(`Shoot_FW_before` ~ Species, data = Harvest_Data_Clean)
 summary(Shoot_FW_by_Species)
@@ -197,6 +213,10 @@ summary(Shoot_FW_by_Species)
 #Shoot FW by Treatment (not significant)
 Shoot_FW_by_Treatment <- aov(`Shoot_FW_before` ~ Treatment, data = Harvest_Data_Clean)
 summary(Shoot_FW_by_Treatment)
+
+#Shoot FW by Species and Treatment (not significant)
+Shoot_FW_by_ST <- aov(`Shoot_FW_before` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Shoot_FW_by_ST)
 
 #Stem Diameter by Species (not significant)
 Stem_diameter_by_Species <- aov(`Stem_diameter` ~ Species, data = Harvest_Data_Clean)
@@ -206,6 +226,10 @@ summary(Stem_diameter_by_Species)
 Stem_diameter_by_Treatment <- aov(`Stem_diameter` ~ Treatment, data = Harvest_Data_Clean)
 summary(Stem_diameter_by_Treatment)
 
+#Stem Diameter by Species and Treatment (not significant)
+Stem_diameter_by_ST <- aov(`Stem_diameter` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Stem_diameter_by_ST)
+
 #Root MC by Species (not significant)
 Root_MC_by_Species <- aov(`Root_%_MC` ~ Species, data = Harvest_Data_Clean)
 summary(Root_MC_by_Species)
@@ -214,6 +238,10 @@ summary(Root_MC_by_Species)
 Root_MC_by_Treatment <- aov(`Root_%_MC` ~ Treatment, data = Harvest_Data_Clean)
 summary(Root_MC_by_Treatment)
 
+#Root MC by Species and Treatment (not significant)
+Root_MC_by_ST <- aov(`Root_%_MC` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Root_MC_by_ST)
+
 #Shoot MC by Species (not significant)
 Shoot_MC_by_Species <- aov(`Shoot_%_MC` ~ Species, data = Harvest_Data_Clean)
 summary(Shoot_MC_by_Species)
@@ -221,6 +249,10 @@ summary(Shoot_MC_by_Species)
 #Shoot MC by Treatment (Significant)
 Shoot_MC_by_Treatment <- aov(`Shoot_%_MC` ~ Treatment, data = Harvest_Data_Clean)
 summary(Shoot_MC_by_Treatment)
+
+#Shoot MC by Species and Treatment (Significant)
+Shoot_MC_by_ST <- aov(`Shoot_%_MC` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Shoot_MC_by_ST)
 
 #Total Dry Biomass by Species (not significant, but indeed RP plants were a bit smaller than R+S and other)
 totalmassanova = aov(total_dry_mass ~ Species, data = Harvest_Data_Clean)
@@ -231,6 +263,10 @@ TukeyHSD(totalmassanova)
 totalmassanovabytreatment = aov(total_dry_mass ~ Treatment, data = Harvest_Data_Clean)
 summary(totalmassanovabytreatment)
 
+#Total Dry Biomass by Species and Treatment (not significant)
+totalmassanovabyST = aov(total_dry_mass ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(totalmassanovabyST)
+
 #Final Weight by Species (not significant)
 Final_Weight_by_Species <- aov(`Final_weight` ~ Species, data = Harvest_Data_Clean)
 summary(Final_Weight_by_Species)
@@ -238,6 +274,26 @@ summary(Final_Weight_by_Species)
 #Final Weight by Treatment (significant)
 Final_Weight_by_Treatment <- aov(`Final_weight` ~ Treatment, data = Harvest_Data_Clean)
 summary(Final_Weight_by_Treatment)
+
+#Final Weight by Species and Treatment (significant)
+Final_Weight_by_ST <- aov(`Final_weight` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Final_Weight_by_ST)
+
+#Leaf SA by Species (not significant)
+Av_Needle_SA_Species <- aov(`Av_Needle_SA` ~ Species, data = Harvest_Data_Clean)
+summary(Av_Needle_SA_Species)
+
+#Leaf SA by Treatment (not significant)
+Av_Needle_SA_Treatment <- aov(`Av_Needle_SA` ~ Treatment, data = Harvest_Data_Clean)
+summary(Av_Needle_SA_Treatment)
+
+#Leaf SA by Species and Treatment (not significant)
+Av_Needle_SA_ST <- aov(`Av_Needle_SA` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Av_Needle_SA_ST)
+
+#% Colonization by Total Dry Biomass (not significant)
+Colonization_by_biomass <- aov(total_dry_mass ~ Species * perccol, data = subset(Harvest_Data_Clean, Species != "NM"))
+summary(Colonization_by_biomass)
 
 
 
@@ -258,6 +314,20 @@ ggplot(Harvest_Data_Clean, aes(Species, Root_to_Shoot_Ratio)) +geom_boxplot() +
 #Root:Shoot by Treatment (provides no meaningful info)
 ggplot(Harvest_Data_Clean, aes(Treatment, Root_to_Shoot_Ratio)) +geom_boxplot() +
   labs(title = "Root to Shoot Ratio by Treatment", y = "Root to Shoot Ratio")
+
+#Root DW by Species and Treatment
+boxplot(Harvest_Data_Clean$Root_DW~Harvest_Data$Species+Harvest_Data_Clean$Treatment)
+ggplot(Harvest_Data_Clean, aes(x = Species, y = Root_DW, fill = Treatment)) + 
+  geom_boxplot() + 
+  labs(title = "Root Dry Weight By Species and Treatment", x = "Species", y = "Root Dry Weight (g)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
+
+#Root FW by Species and Treatment
+boxplot(Harvest_Data_Clean$Root_FW_before~Harvest_Data$Species+Harvest_Data_Clean$Treatment)
+ggplot(Harvest_Data_Clean, aes(x = Species, y = Root_FW_before, fill = Treatment)) + 
+  geom_boxplot() + 
+  labs(title = "Root Fresh Weight By Species and Treatment", x = "Species", y = "Root Fresh Weight (g)") + 
+  scale_fill_manual(values = c("drought" = "red", "control" = "deepskyblue"))
 
 #Shoot DW by Species and Treatment
 boxplot(Harvest_Data_Clean$Shoot_DW~Harvest_Data$Species+Harvest_Data_Clean$Treatment)
@@ -380,10 +450,6 @@ ggplot(subset(Harvest_Data_Clean, Species != "NM" & perccol != 0), aes(x = percc
   labs(title = "Percent Colonization by Total Dry Biomass", 
        x = "Colonization (%)", 
        y = "Total Dry Biomass (g)")
-
-
-
-
 
 
 #### Calculating transpiration rates ####
@@ -1497,7 +1563,134 @@ combined_colonization_anova <- aov(Average_Transpiration ~ Treatment * `perccol`
 
 summary(combined_colonization_anova)
 
+#Percent Colonization by Species (Significant)
+Percent_Col_by_Species <- aov(`%_colonization` ~ Species, data = Harvest_Data_Clean)
+summary(Percent_Col_by_Species)
+
+#Root:Shoot Ratio by Treatment and Species (not sig)
+Root_to_Shoot_Ratio_by_T_S <- aov(`Root_to_Shoot_Ratio` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Root_to_Shoot_Ratio_by_T_S)
+
+#Root DW by Species and Treatment (not significant)
+Root_DW_by_ST <- aov(`Root_DW` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Root_DW_by_ST)
+
+#Root FW by Species and Treatment (not significant)
+Root_FW_by_ST <- aov(`Root_FW_before` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Root_FW_by_ST)
+
+#Shoot DW by Species and Treatment (not significant)
+Shoot_DW_by_ST <- aov(`Shoot_DW` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Shoot_DW_by_ST)
+
+#Shoot FW by Species and Treatment (not significant)
+Shoot_FW_by_ST <- aov(`Shoot_FW_before` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Shoot_FW_by_ST)
+
+#Stem Diameter by Species and Treatment (not significant)
+Stem_diameter_by_ST <- aov(`Stem_diameter` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Stem_diameter_by_ST)
+
+#Root MC by Species and Treatment (not significant)
+Root_MC_by_ST <- aov(`Root_%_MC` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Root_MC_by_ST)
+
+#Shoot MC by Species and Treatment (Significant)
+Shoot_MC_by_ST <- aov(`Shoot_%_MC` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Shoot_MC_by_ST)
+
+#Total Dry Biomass by Species (not significant, but indeed RP plants were a bit smaller than R+S and other)
+totalmassanova = aov(total_dry_mass ~ Species, data = Harvest_Data_Clean)
+summary(totalmassanova)
+TukeyHSD(totalmassanova)
+
+#Total Dry Biomass by Treatment (not significant)
+totalmassanovabytreatment = aov(total_dry_mass ~ Treatment, data = Harvest_Data_Clean)
+summary(totalmassanovabytreatment)
+
+#Total Dry Biomass by Species and Treatment (not significant)
+totalmassanovabyST = aov(total_dry_mass ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(totalmassanovabyST)
+
+#Final Weight by Species and Treatment (significant)
+Final_Weight_by_ST <- aov(`Final_weight` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Final_Weight_by_ST)
+
+#Leaf SA by Species and Treatment (not significant)
+Av_Needle_SA_ST <- aov(`Av_Needle_SA` ~ Species * Treatment, data = Harvest_Data_Clean)
+summary(Av_Needle_SA_ST)
+
+#% Colonization by Total Dry Biomass (not significant)
+Colonization_by_biomass <- aov(total_dry_mass ~ Species * perccol, data = subset(Harvest_Data_Clean, Species != "NM"))
+summary(Colonization_by_biomass)
+
+
 ####Saved up to here####
+
+
+#Statistcal summary table
+library(broom)
+library(broom.mixed)
+library(dplyr)
+library(kableExtra)
+install.packages("knitr")
+
+
+# Create a list of all models to summarize
+models <- list(
+  "Control Transpiration Rate ANOVA" = panel_a_anova,
+  "Control Transpiration Rate by % Colonization ANOVA" = trans_by_perccol_anova,
+  "Drought Transpiration Rate 2 Days B4 Harvest ANOVA" = plot_b_anova,
+  "Drought Transpiration Rate by % Colonization ANOVA" = lmm_trans_perccol_D,
+  "Combined Transpiration Rate 2 Days B4 Harvest ANOVA" = combined_trans_2_days_b4_anova,
+  "Combined Transpiration Rate by % Colonization ANOVA" = combined_colonization_anova,
+  "Percent Colonization by Species" = Percent_Col_by_Species,
+  "Root:Shoot Ratio by Species and Treatment" = Root_to_Shoot_Ratio_by_T_S,
+  "Root DW by Species and Treatment" = Root_DW_by_ST,
+  "Root FW by Species and Treatment" = Root_FW_by_ST,
+  "Shoot DW by Species and Treatment" = Shoot_DW_by_ST,
+  "Shoot FW by Species and Treatment" = Shoot_FW_by_ST,
+  "Stem Diameter by Species and Treatment" = Stem_diameter_by_ST,
+  "Root MC by Species and Treatment" = Root_MC_by_ST,
+  "Shoot MC by Species and Treatment" = Shoot_MC_by_ST,
+  "Total Dry Biomass by Species" = totalmassanova,
+  "Total Dry Biomass by Treatment" = totalmassanovabytreatment,
+  "Total Dry Biomass by Species and Treatment" = totalmassanovabyST,
+  "Final Weight by Species and Treatment" = Final_Weight_by_ST,
+  "Leaf SA by Species and Treatment" = Av_Needle_SA_ST,
+  "Percent Colonization by Total Dry Biomass" = Colonization_by_biomass)
+
+# Function to tidy up each model summary and extract relevant information
+tidy_model_results <- function(model, model_name) {
+  if ("lmer" %in% class(model)) {
+    # For mixed models (e.g., lmer)
+    result <- tidy(model)} else {
+    # For regular ANOVA models
+    result <- tidy(model)}
+  
+  # Add a column for the model name
+  result$model <- model_name
+  
+  return(result)}
+
+# Apply the function to each model and combine the results
+model_summaries <- lapply(names(models), function(model_name) {
+  tidy_model_results(models[[model_name]], model_name)
+}) %>% bind_rows()
+
+# Create a summary table of ANOVA results
+anova_summary_table <- model_summaries %>%
+  select(model, term, estimate, p.value) %>%
+  mutate(p.value = round(p.value, 3)) %>%
+  pivot_wider(names_from = term, values_from = c(estimate, p.value)) %>%
+  kable("html", escape = FALSE, caption = "Summary of Statistical Tests") %>%
+  kable_styling(full_width = F, position = "center")
+
+# Display the table
+anova_summary_table
+
+
+
 
 
 
