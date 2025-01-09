@@ -1506,13 +1506,13 @@ summary(combined_colonization_anova)
 ####Statistical Tests####
 
 #Control transpiration rate ANOVA statistics
-panel_a_anova_data <- panel_a_data %>%
-  filter(!is.na(Average_Transpiration)) %>%
-  mutate(Date = as.factor(Date))
+panel_a_anova_data <- panel_a_data %>% 
+  filter(!is.na(Average_Transpiration))
 
-panel_a_anova <- aov(Average_Transpiration ~ Species + Date + Species:Date, data = panel_a_anova_data)
+panel_a_anova <- aov(Average_Transpiration ~ Species, data = panel_a_anova_data)
 
 summary(panel_a_anova)
+
 
 #Control transpiration rate by % colonization ANOVA statistics
 trans_by_perccol_data <- trans_by_perccol_data %>%
@@ -1627,13 +1627,88 @@ summary(Colonization_by_biomass)
 
 ####Saved up to here####
 
+#Fungi Impact Plant Water Use, Measured by Transpiration Rate Graph
+  #Panel A: X axis species, Y axis transpiration rate day 0 of drydown (final measurement before drydown, right after water is applied)
+
+
+  #Panel B: X axis species, Y axis transpiration rate day 6 of drydown
+
+
+#Percent Colonization and Biomass graph
+species_order <- c("NM", "SP", "RP", "TC", "S+T", "R+S") 
+
+ #Panel A: X axis % col, Y axis species
+ggplot(subset(Harvest_Data_Clean), aes(x = perccol, y = Species, color = Species)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Percent Colonization by Species", 
+       x = "Colonization (%)", 
+       y = "Species")
+
+  #Panel B: X axis biomass, Y axis species
+ggplot(subset(Harvest_Data_Clean, Species != "NM"), aes(x = total_dry_mass, y = Species, color = Species)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Total Dry Biomass by Species", 
+       x = "Total Dry Biomass (g)", 
+       y = "Species")
+
+#Combining both graphs into one
+library(ggplot2)
+library(patchwork)
+library(ggplot2)
+library(patchwork)
+
+# Define the desired order of species
+species_order <- c("NM", "SP", "RP", "TC", "S+T", "R+S")
+
+# Panel A: Percent Colonization by Species
+panel_a <- ggplot(subset(Harvest_Data_Clean), 
+                  aes(x = perccol, y = factor(Species, levels = species_order), color = Species)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Percent Colonization by Species", 
+    x = "Colonization (%)", 
+    y = "Species"
+  ) +
+  theme_bw() +
+  theme(legend.position = "none")
+
+# Panel B: Total Dry Biomass by Species (excluding NM)
+panel_b <- ggplot(subset(Harvest_Data_Clean), 
+                  aes(x = total_dry_mass, y = factor(Species, levels = species_order), color = Species)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Total Dry Biomass by Species", 
+    x = "Total Dry Biomass (g)", 
+    y = "Species"
+  ) +
+  theme_bw() +
+  theme(legend.position = "none")
+
+# Combine the two panels vertically
+combined_plot <- panel_a / panel_b + 
+  plot_annotation(title = "Colonization and Biomass by Species")
+
+# Display the combined plot
+print(combined_plot)
+
+
+
+
+
 
 #Statistcal summary table
 library(broom)
 library(broom.mixed)
 library(dplyr)
 library(kableExtra)
+library(magrittr)
+library(tidyr)
 install.packages("knitr")
+install.packages("Matrix")
 
 
 # Create a list of all models to summarize
@@ -1659,19 +1734,23 @@ models <- list(
   "Final Weight by Species and Treatment" = Final_Weight_by_ST,
   "Leaf SA by Species and Treatment" = Av_Needle_SA_ST,
   "Percent Colonization by Total Dry Biomass" = Colonization_by_biomass)
+summary(models)
 
 # Function to tidy up each model summary and extract relevant information
 tidy_model_results <- function(model, model_name) {
   if ("lmer" %in% class(model)) {
     # For mixed models (e.g., lmer)
-    result <- tidy(model)} else {
+    result <- tidy(model)
+  } else {
     # For regular ANOVA models
-    result <- tidy(model)}
+    result <- tidy(model)
+  }
   
   # Add a column for the model name
   result$model <- model_name
   
-  return(result)}
+  return(result)
+}
 
 # Apply the function to each model and combine the results
 model_summaries <- lapply(names(models), function(model_name) {
@@ -1688,6 +1767,10 @@ anova_summary_table <- model_summaries %>%
 
 # Display the table
 anova_summary_table
+
+
+
+head(model_summaries)
 
 
 
