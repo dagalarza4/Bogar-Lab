@@ -156,6 +156,14 @@ ggplot(subset(Harvest_Data_LB, Species != "NM"), aes(x = perccol, y = total_dry_
 Percent_Col_by_Species <- aov(`%_colonization` ~ Species, data = Harvest_Data_Clean)
 summary(Percent_Col_by_Species)
 
+#Transpiration Rate by Species
+Trans_by_Species <- aov(`Transpiration_rate_value` ~ Species, data = transpiration_data )
+summary(Trans_by_Species)
+
+#Transpiration Rate by Percent Colonization
+Trans_by_Species <- aov(`Transpiration_rate_value` ~ `%_colonization`, data = transpiration_data )
+summary(Trans_by_Species)
+
 #Root:Shoot Ratio by Species (not significant)
 Harvest_Data_Clean$Root_to_Shoot_Ratio <- Harvest_Data_Clean$Root_DW / Harvest_Data_Clean$Shoot_DW
 Root_to_Shoot_Ratio_by_Species <- aov(`Root_to_Shoot_Ratio` ~ Species, data = Harvest_Data_Clean)
@@ -295,6 +303,8 @@ summary(Av_Needle_SA_ST)
 Colonization_by_biomass <- aov(total_dry_mass ~ Species * perccol, data = subset(Harvest_Data_Clean, Species != "NM"))
 summary(Colonization_by_biomass)
 
+Colonization_by_biomass_simplified <- aov(total_dry_mass ~ perccol, data = subset(Harvest_Data_Clean, Species != "NM"))
+summary(Colonization_by_biomass_simplified)
 
 
 
@@ -1304,6 +1314,7 @@ trans_by_perccol_anova <- aov(Average_Transpiration ~ Species * perccol, data = 
 summary(trans_by_perccol_anova)
 
 
+
 ####Drought transpiration rate 2 Days B4 harvest graph####
 harvest_days <- read_excel("Lysimetry+Info.xlsx", sheet = "Harvest Days") %>%
   rename(Plant_ID = ID)
@@ -1625,35 +1636,7 @@ Colonization_by_biomass <- aov(total_dry_mass ~ Species * perccol, data = subset
 summary(Colonization_by_biomass)
 
 
-####Saved up to here####
-
-#Fungi Impact Plant Water Use, Measured by Transpiration Rate Graph
-  #Panel A: X axis species, Y axis transpiration rate day 0 of drydown (final measurement before drydown, right after water is applied)
-
-
-  #Panel B: X axis species, Y axis transpiration rate day 6 of drydown
-
-
-#Percent Colonization and Biomass graph
-species_order <- c("NM", "SP", "RP", "TC", "S+T", "R+S") 
-
- #Panel A: X axis % col, Y axis species
-ggplot(subset(Harvest_Data_Clean), aes(x = perccol, y = Species, color = Species)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(title = "Percent Colonization by Species", 
-       x = "Colonization (%)", 
-       y = "Species")
-
-  #Panel B: X axis biomass, Y axis species
-ggplot(subset(Harvest_Data_Clean, Species != "NM"), aes(x = total_dry_mass, y = Species, color = Species)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(title = "Total Dry Biomass by Species", 
-       x = "Total Dry Biomass (g)", 
-       y = "Species")
-
-#Combining both graphs into one
+#### Percent Colonization and Biomass 2 Panel graph ####
 library(ggplot2)
 library(patchwork)
 library(ggplot2)
@@ -1668,7 +1651,7 @@ panel_a <- ggplot(subset(Harvest_Data_Clean),
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   labs(
-    title = "Percent Colonization by Species", 
+    title = "a) Percent Colonization by Species", 
     x = "Colonization (%)", 
     y = "Species"
   ) +
@@ -1681,7 +1664,7 @@ panel_b <- ggplot(subset(Harvest_Data_Clean),
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   labs(
-    title = "Total Dry Biomass by Species", 
+    title = "b) Total Dry Biomass by Species", 
     x = "Total Dry Biomass (g)", 
     y = "Species"
   ) +
@@ -1689,91 +1672,224 @@ panel_b <- ggplot(subset(Harvest_Data_Clean),
   theme(legend.position = "none")
 
 # Combine the two panels vertically
-combined_plot <- panel_a / panel_b + 
-  plot_annotation(title = "Colonization and Biomass by Species")
+combined_plot1 <- panel_a / panel_b
+
+# Display the combined plot
+print(combined_plot1)
+
+#### Fungi Impact Plant Water Use, Measured by Transpiration Rate Graph ####
+  #Panel A: X axis species, Y axis transpiration rate day 0 of drydown (final measurement before dry down, right after water is applied)
+
+species_colors <- c(
+  "NM" = "moccasin",
+  "SP" = "tan3",
+  "RP" = "salmon4",
+  "TC" = "gold2",
+  "S+T" = "darkgoldenrod2",
+  "R+S" = "orangered4"
+)
+
+# Prepare the data for drought plants for Day 0
+plot_day0_data <- filtered_data %>%
+  filter(Treatment == "drought") %>%  # Filter for drought plants only
+  left_join(harvest_days, by = "Plant_ID") %>%  # Join harvest days
+  filter(!is.na(Day0))  # Exclude rows where Day0 is NA
+
+# Create the boxplot for Day 0
+plot_day0 <- ggplot(plot_day0_data, aes(x = Species, y = Transpiration_rate_value, fill = Species)) +
+  geom_boxplot(outlier.shape = NA) +  # Create the boxplot without outlier points
+  scale_fill_manual(values = species_colors) +  # Apply custom colors
+  scale_y_continuous(limits = c(0, 0.2)) +  # Set y-axis limits from 0 to 0.2
+  labs(
+    title = "Drought Plants Transpiration Rate on Day 0",
+    x = "Species",
+    y = "Transpiration Rate (g/hr)",
+    fill = "Species"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    legend.position = "none"  # Remove legend
+  )
+print(plot_day0)
+
+  #Panel B: X axis species, Y axis transpiration rate day 6 of dry down
+library(readxl)
+library(dplyr)
+library(ggplot2)
+
+harvest_days <- read_excel("Lysimetry+Info.xlsx", sheet = "Harvest Days") %>%
+  rename(Plant_ID = ID)
+
+# Prepare the data for drought plants for HarvestDate (Day 6)
+plot_day6_data <- filtered_data %>%
+  filter(Treatment == "drought") %>%  # Filter for drought plants
+  left_join(harvest_days, by = "Plant_ID") %>%  # Join harvest days
+  filter(Date == as.Date(HarvestDate, format = "%m/%d/%y"))  # Filter for HarvestDate (Day 6)
+
+# Create the boxplot
+plot_day6 <- ggplot(plot_day6_data, aes(x = Species, y = Transpiration_rate_value, fill = Species)) +
+  geom_boxplot(outlier.shape = NA) +  # Create the boxplot without outlier points
+  geom_jitter(width = 0.2, size = 1.5, alpha = 0.7) +  # Add jittered points for individual data
+  scale_fill_manual(values = species_colors) +  # Apply custom colors
+  scale_y_continuous(limits = c(0, 0.2)) +  # Set y-axis limits from 0 to 0.2
+  labs(
+    title = "Drought Plants Transpiration Rate on Day 6",
+    x = "Species",
+    y = "Transpiration Rate (g/hr)",
+    fill = "Species"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    legend.position = "none"  # Remove legend
+  )
+print(plot_day6)
+
+#Combine both graphs
+library(patchwork)
+
+# Panel A: Day 0 Boxplot
+plot_day0 <- ggplot(plot_day0_data, aes(x = Species, y = Transpiration_rate_value, fill = Species)) +
+  geom_boxplot(outlier.shape = NA) +  # Boxplot without outlier points
+  scale_fill_manual(values = species_colors) +  # Apply custom colors
+  scale_y_continuous(limits = c(0, 0.2)) +  # Y-axis limits
+  labs(
+    title = "a) Transpiration Rate of Drought Plants on Day 0",
+    x = "Species",
+    y = "Transpiration Rate (g/hr)"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    legend.position = "none"  # Remove legend
+  )
+
+# Panel B: Day 6 Boxplot
+plot_day6 <- ggplot(plot_day6_data, aes(x = Species, y = Transpiration_rate_value, fill = Species)) +
+  geom_boxplot(outlier.shape = NA) +  # Boxplot without outlier points
+  scale_fill_manual(values = species_colors) +  # Apply custom colors
+  scale_y_continuous(limits = c(0, 0.2)) +  # Y-axis limits
+  labs(
+    title = "b) Transpiration Rate of Drought Plants on Day 6",
+    x = "Species",
+    y = "Transpiration Rate (g/hr)"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    legend.position = "none"  # Remove legend
+  )
+
+# Combine plots
+combined_plot <- plot_day0 / plot_day6  # Arrange Day 0 on top and Day 6 below
 
 # Display the combined plot
 print(combined_plot)
 
+# ANOVA for Transpiration Rate on Day 0 by Species
+transpiration_day0_anova <- aov(Transpiration_rate_value ~ Species, data = plot_day0_data)
+summary(transpiration_day0_anova)
+
+# ANOVA for Transpiration Rate on Day 6 by Species
+transpiration_day6_anova <- aov(Transpiration_rate_value ~ Species, data = plot_day6_data)
+summary(transpiration_day6_anova)
 
 
 
 
-
-#Statistcal summary table
-library(broom)
-library(broom.mixed)
+## Plot B change including control plants
+library(readxl)
 library(dplyr)
-library(kableExtra)
-library(magrittr)
-library(tidyr)
-install.packages("knitr")
-install.packages("Matrix")
+library(ggplot2)
 
+# Load harvest days data
+harvest_days <- read_excel("Lysimetry+Info.xlsx", sheet = "Harvest Days") %>%
+  rename(Plant_ID = ID)
 
-# Create a list of all models to summarize
-models <- list(
-  "Control Transpiration Rate ANOVA" = panel_a_anova,
-  "Control Transpiration Rate by % Colonization ANOVA" = trans_by_perccol_anova,
-  "Drought Transpiration Rate 2 Days B4 Harvest ANOVA" = plot_b_anova,
-  "Drought Transpiration Rate by % Colonization ANOVA" = lmm_trans_perccol_D,
-  "Combined Transpiration Rate 2 Days B4 Harvest ANOVA" = combined_trans_2_days_b4_anova,
-  "Combined Transpiration Rate by % Colonization ANOVA" = combined_colonization_anova,
-  "Percent Colonization by Species" = Percent_Col_by_Species,
-  "Root:Shoot Ratio by Species and Treatment" = Root_to_Shoot_Ratio_by_T_S,
-  "Root DW by Species and Treatment" = Root_DW_by_ST,
-  "Root FW by Species and Treatment" = Root_FW_by_ST,
-  "Shoot DW by Species and Treatment" = Shoot_DW_by_ST,
-  "Shoot FW by Species and Treatment" = Shoot_FW_by_ST,
-  "Stem Diameter by Species and Treatment" = Stem_diameter_by_ST,
-  "Root MC by Species and Treatment" = Root_MC_by_ST,
-  "Shoot MC by Species and Treatment" = Shoot_MC_by_ST,
-  "Total Dry Biomass by Species" = totalmassanova,
-  "Total Dry Biomass by Treatment" = totalmassanovabytreatment,
-  "Total Dry Biomass by Species and Treatment" = totalmassanovabyST,
-  "Final Weight by Species and Treatment" = Final_Weight_by_ST,
-  "Leaf SA by Species and Treatment" = Av_Needle_SA_ST,
-  "Percent Colonization by Total Dry Biomass" = Colonization_by_biomass)
-summary(models)
+# Prepare the data for both control and drought plants on Day 6
+plot_day6_data2 <- filtered_data %>%
+  filter(Treatment %in% c("drought", "control")) %>%  # Include both drought and control plants
+  left_join(harvest_days, by = "Plant_ID") %>%  # Join harvest days
+  filter(Date == as.Date(HarvestDate, format = "%m/%d/%y"))  # Filter for HarvestDate (Day 6)
 
-# Function to tidy up each model summary and extract relevant information
-tidy_model_results <- function(model, model_name) {
-  if ("lmer" %in% class(model)) {
-    # For mixed models (e.g., lmer)
-    result <- tidy(model)
-  } else {
-    # For regular ANOVA models
-    result <- tidy(model)
-  }
-  
-  # Add a column for the model name
-  result$model <- model_name
-  
-  return(result)
-}
+# Create a new factor variable combining Species and Treatment for the x-axis
+plot_day6_data2$Species_Treatment <- factor(paste(plot_day6_data2$Species, plot_day6_data2$Treatment, sep = "_"),
+                                            levels = c("NM_control", "NM_drought", 
+                                                       "SP_control", "SP_drought", 
+                                                       "RP_control", "RP_drought", 
+                                                       "TC_control", "TC_drought", 
+                                                       "S+T_control", "S+T_drought", 
+                                                       "R+S_control", "R+S_drought"))
 
-# Apply the function to each model and combine the results
-model_summaries <- lapply(names(models), function(model_name) {
-  tidy_model_results(models[[model_name]], model_name)
-}) %>% bind_rows()
+# Define custom colors for treatments (control = blue, drought = red)
+species_colors <- c("control" = "blue", "drought" = "red")
 
-# Create a summary table of ANOVA results
-anova_summary_table <- model_summaries %>%
-  select(model, term, estimate, p.value) %>%
-  mutate(p.value = round(p.value, 3)) %>%
-  pivot_wider(names_from = term, values_from = c(estimate, p.value)) %>%
-  kable("html", escape = FALSE, caption = "Summary of Statistical Tests") %>%
-  kable_styling(full_width = F, position = "center")
-
-# Display the table
-anova_summary_table
-
-
-
-head(model_summaries)
+#Graph
+plot_day6_2 <- ggplot(plot_day6_data2, aes(x = Species, y = Transpiration_rate_value, fill = Treatment)) +
+  geom_boxplot(outlier.shape = NA) +  # Boxplot without outlier points
+  geom_jitter(width = 0.2, size = 1.5, alpha = 0.7) +  # Add jittered points for individual data
+  scale_fill_manual(values = c("control" = "blue", "drought" = "red"), 
+                    name = "Treatment", 
+                    labels = c("Control", "Drought")) +  # Custom legend for control and drought
+  scale_x_discrete(labels = c("NM" = "NM", "SP" = "SP", "RP" = "RP", "TC" = "TC", 
+                              "S+T" = "S+T", "R+S" = "R+S")) +  # Simplified x-axis labels to just species
+  scale_y_continuous(limits = c(0, 0.2)) +  # Set y-axis limits from 0 to 0.2
+  labs(
+    title = "b) Transpiration Rate on Harvest Day (Day 6 of Drought)",
+    x = "Species",
+    y = "Transpiration Rate (g/hr)"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    legend.position = "top"  # Move the legend to the top
+  )
+print(plot_day6_2)
 
 
 
 
 
+
+
+# Combine plots
+combined_plot3 <- plot_day0 / plot_day6_2  # Arrange Day 0 on top and Day 6 below
+
+# Display the combined plot
+print(combined_plot3)
+
+
+
+
+
+
+#ANOVA analysis for the above 2 panel graph
+library(dplyr)
+
+# Panel A (Day 0) ANOVA Analysis
+anova_day0 <- aov(Transpiration_rate_value ~ Species, data = plot_day0_data)
+
+# Summary of ANOVA for Day 0
+summary_day0 <- summary(anova_day0)
+print("ANOVA Results for Day 0:")
+print(summary_day0)
+
+# Panel B (Day 6) ANOVA Analysis
+anova_day6 <- aov(Transpiration_rate_value ~ Species, data = plot_day6_data)
+
+# Summary of ANOVA for Day 6
+summary_day6 <- summary(anova_day6)
+print("ANOVA Results for Day 6:")
+print(summary_day6)
+
+# Check assumptions for Day 6
+levene_day6 <- leveneTest(Transpiration_rate_value ~ Species, data = plot_day6_data)
+print("Levene's Test for Day 6:")
+print(levene_day6)
+
+
+
+
+####Saved up to here####
 
