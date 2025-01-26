@@ -117,4 +117,3 @@ transpiration_day6_anova <- aov(Transpiration_rate_value ~ Species, data = plot_
 summary(transpiration_day6_anova)
 
 
-

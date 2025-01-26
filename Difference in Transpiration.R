@@ -74,4 +74,3 @@ summary(anova_model)
 # Perform Tukey's Honest Significant Difference test (No one species is significantly different)
 tukey_results <- TukeyHSD(anova_model)
 print(tukey_results)
-

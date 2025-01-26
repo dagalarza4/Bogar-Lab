@@ -78,8 +78,6 @@ tukey_biomass_ST <- TukeyHSD(totalmassanovabyST)
 print(tukey_biomass_ST)
 
 
-
-
 #### Tukey Graph ####
 # Define species colors
 species_colors <- c(

@@ -1533,6 +1533,9 @@ trans_by_perccol_anova <- aov(Average_Transpiration ~ Species * perccol, data = 
 
 summary(trans_by_perccol_anova)
 
+usethis::edit_r_environ()
+
+
 #Drought transpiration rate 2 Days B4 harvest ANOVA test
 plot_b_anova_data <- plot_b_data %>%
   mutate(
