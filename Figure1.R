@@ -1,6 +1,9 @@
 #### Fungi Impact Plant Water Use, Measured by Transpiration Rate Graph ####
 # Panel A: X axis species, Y axis transpiration rate day 0 of drydown (final measurement before dry down, right after water is applied)
 
+# Most of the needed data structures will be in DFD Data.R
+require(tidyverse)
+
 # Define species colors
 species_colors <- c(
   "NM" = "moccasin",
