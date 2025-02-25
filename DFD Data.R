@@ -153,8 +153,11 @@ ggplot(subset(Harvest_Data_LB, Species != "NM"), aes(x = perccol, y = total_dry_
 #### Statistics #### 
 
 #Percent Colonization by Species (Significant)
-Percent_Col_by_Species <- aov(`%_colonization` ~ Species, data = Harvest_Data_Clean)
+Percent_Col_by_Species <- aov(`%_colonization` ~ Species, data = Harvest_Data_LB)
 summary(Percent_Col_by_Species)
+
+Percent_Col <- aov(`perccol` ~ Species, data = Harvest_Data_LB)
+summary(Percent_Col)
 
 #Transpiration Rate by Species
 Trans_by_Species <- aov(`Transpiration_rate_value` ~ Species, data = transpiration_data )
@@ -1896,3 +1899,4 @@ print(levene_day6)
 
 ####Saved up to here####
 
+gh::gh_whoami()
