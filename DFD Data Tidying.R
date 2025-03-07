@@ -1,6 +1,9 @@
 library(readxl)
 library(dplyr)
 library(tidyverse)
+library(readr)
+library(tidyr)
+library(lubridate)
 
 #### Open datasets #### 
 Harvest_Data <- read_excel("Harvest Data.xlsx")
@@ -149,9 +152,6 @@ Lysimetry_Super_Update$Time_diff_07_07_07_10 <-
 Lysimetry_Super_Update$Time_diff_07_10_07_11 <- 
   Lysimetry_Super_Update$Time07_11_23 - Lysimetry_Super_Update$Time07_10_23
 
-Lysimetry_Super_Update$Time_diff_07_10_07_12 <- 
-  Lysimetry_Super_Update$Time07_12_23 - Lysimetry_Super_Update$Time07_10_23
-
 Lysimetry_Super_Update$Time_diff_07_11_07_12 <- 
   Lysimetry_Super_Update$Time07_12_23 - Lysimetry_Super_Update$Time07_11_23
 
@@ -266,10 +266,6 @@ Lysimetry_Super_Update$Time_diff_07_07_07_10 <- as.numeric(
 )
 Lysimetry_Super_Update$Time_diff_07_10_07_11 <- as.numeric(
   Lysimetry_Super_Update$Time_diff_07_10_07_11, 
-  units = "hours"
-)
-Lysimetry_Super_Update$Time_diff_07_10_07_12 <- as.numeric(
-  Lysimetry_Super_Update$Time_diff_07_10_07_12, 
   units = "hours"
 )
 Lysimetry_Super_Update$Time_diff_07_11_07_12 <- as.numeric(
@@ -397,9 +393,6 @@ Lysimetry_Super_Update$Weight_diff_07_07_07_10 <-
 Lysimetry_Super_Update$Weight_diff_07_10_07_11 <- 
   Lysimetry_Super_Update$`water07/10/23` - Lysimetry_Super_Update$`sample07/11/23`
 
-Lysimetry_Super_Update$Weight_diff_07_10_07_12 <- 
-  Lysimetry_Super_Update$`sample07/10/23` - Lysimetry_Super_Update$`sample07/12/23`
-
 Lysimetry_Super_Update$Weight_diff_07_11_07_12 <- 
   Lysimetry_Super_Update$`sample07/11/23` - Lysimetry_Super_Update$`sample07/12/23`
 
@@ -502,9 +495,6 @@ Lysimetry_Super_Update$Transpiration_rate_07_07_07_10 <-
 
 Lysimetry_Super_Update$Transpiration_rate_07_10_07_11 <- 
   Lysimetry_Super_Update$Weight_diff_07_10_07_11 / as.numeric(Lysimetry_Super_Update$Time_diff_07_10_07_11, units = "hours")
-
-Lysimetry_Super_Update$Transpiration_rate_07_10_07_12 <- 
-  Lysimetry_Super_Update$Weight_diff_07_10_07_12 / as.numeric(Lysimetry_Super_Update$Time_diff_07_10_07_12, units = "hours")
 
 Lysimetry_Super_Update$Transpiration_rate_07_11_07_12 <- 
   Lysimetry_Super_Update$Weight_diff_07_11_07_12 / as.numeric(Lysimetry_Super_Update$Time_diff_07_11_07_12, units = "hours")
@@ -637,120 +627,186 @@ Lysimetry_calculated <- data.frame(
   Time_Diff_13 = as.numeric(Lysimetry_Super_Update$Time_diff_07_10_07_11, units = "hours"),
   Transpiration_Rate_13 = Lysimetry_Super_Update$Transpiration_rate_07_10_07_11,
   
-  Interval_14 = "07/10 - 07/12", # Add a label for the second time interval
-  Weight_Diff_14 = Lysimetry_Super_Update$Weight_diff_07_10_07_12,
-  Time_Diff_14 = as.numeric(Lysimetry_Super_Update$Time_diff_07_10_07_12, units = "hours"),
-  Transpiration_Rate_14 = Lysimetry_Super_Update$Transpiration_rate_07_10_07_12,
+  Interval_14 = "07/11 - 07/12", # Add a label for the second time interval
+  Weight_Diff_14 = Lysimetry_Super_Update$Weight_diff_07_11_07_12,
+  Time_Diff_14 = as.numeric(Lysimetry_Super_Update$Time_diff_07_11_07_12, units = "hours"),
+  Transpiration_Rate_14 = Lysimetry_Super_Update$Transpiration_rate_07_11_07_12, 
   
-  Interval_15 = "07/11 - 07/12", # Add a label for the second time interval
-  Weight_Diff_15 = Lysimetry_Super_Update$Weight_diff_07_11_07_12,
-  Time_Diff_15 = as.numeric(Lysimetry_Super_Update$Time_diff_07_11_07_12, units = "hours"),
-  Transpiration_Rate_15 = Lysimetry_Super_Update$Transpiration_rate_07_11_07_12, 
+  Interval_15 = "07/11 - 07/13", # Add a label for the second time interval
+  Weight_Diff_15 = Lysimetry_Super_Update$Weight_diff_07_11_07_13,
+  Time_Diff_15 = as.numeric(Lysimetry_Super_Update$Time_diff_07_11_07_13, units = "hours"),
+  Transpiration_Rate_15 = Lysimetry_Super_Update$Transpiration_rate_07_11_07_13,
   
-  Interval_16 = "07/11 - 07/13", # Add a label for the second time interval
-  Weight_Diff_16 = Lysimetry_Super_Update$Weight_diff_07_11_07_13,
-  Time_Diff_16 = as.numeric(Lysimetry_Super_Update$Time_diff_07_11_07_13, units = "hours"),
-  Transpiration_Rate_16 = Lysimetry_Super_Update$Transpiration_rate_07_11_07_13,
+  Interval_16 = "07/13 - 07/17", # Add a label for the second time interval
+  Weight_Diff_16 = Lysimetry_Super_Update$Weight_diff_07_13_07_17,
+  Time_Diff_16 = as.numeric(Lysimetry_Super_Update$Time_diff_07_13_07_17, units = "hours"),
+  Transpiration_Rate_16 = Lysimetry_Super_Update$Transpiration_rate_07_13_07_17,
   
-  Interval_17 = "07/13 - 07/17", # Add a label for the second time interval
-  Weight_Diff_17 = Lysimetry_Super_Update$Weight_diff_07_13_07_17,
-  Time_Diff_17 = as.numeric(Lysimetry_Super_Update$Time_diff_07_13_07_17, units = "hours"),
-  Transpiration_Rate_17 = Lysimetry_Super_Update$Transpiration_rate_07_13_07_17,
+  Interval_17 = "07/17 - 07/18", # Add a label for the second time interval
+  Weight_Diff_17 = Lysimetry_Super_Update$Weight_diff_07_17_07_18,
+  Time_Diff_17 = as.numeric(Lysimetry_Super_Update$Time_diff_07_17_07_18, units = "hours"),
+  Transpiration_Rate_17 = Lysimetry_Super_Update$Transpiration_rate_07_17_07_18,
   
-  Interval_18 = "07/17 - 07/18", # Add a label for the second time interval
-  Weight_Diff_18 = Lysimetry_Super_Update$Weight_diff_07_17_07_18,
-  Time_Diff_18 = as.numeric(Lysimetry_Super_Update$Time_diff_07_17_07_18, units = "hours"),
-  Transpiration_Rate_18 = Lysimetry_Super_Update$Transpiration_rate_07_17_07_18,
+  Interval_18 = "07/18 - 07/19", # Add a label for the second time interval
+  Weight_Diff_18 = Lysimetry_Super_Update$Weight_diff_07_18_07_19,
+  Time_Diff_18 = as.numeric(Lysimetry_Super_Update$Time_diff_07_18_07_19, units = "hours"),
+  Transpiration_Rate_18 = Lysimetry_Super_Update$Transpiration_rate_07_18_07_19,
   
-  Interval_19 = "07/18 - 07/19", # Add a label for the second time interval
-  Weight_Diff_19 = Lysimetry_Super_Update$Weight_diff_07_18_07_19,
-  Time_Diff_19 = as.numeric(Lysimetry_Super_Update$Time_diff_07_18_07_19, units = "hours"),
-  Transpiration_Rate_19 = Lysimetry_Super_Update$Transpiration_rate_07_18_07_19,
+  Interval_19 = "07/18 - 07/20", # Add a label for the second time interval
+  Weight_Diff_19 = Lysimetry_Super_Update$Weight_diff_07_18_07_20,
+  Time_Diff_19 = as.numeric(Lysimetry_Super_Update$Time_diff_07_18_07_20, units = "hours"),
+  Transpiration_Rate_19 = Lysimetry_Super_Update$Transpiration_rate_07_18_07_20,
   
-  Interval_20 = "07/18 - 07/20", # Add a label for the second time interval
-  Weight_Diff_20 = Lysimetry_Super_Update$Weight_diff_07_18_07_20,
-  Time_Diff_20 = as.numeric(Lysimetry_Super_Update$Time_diff_07_18_07_20, units = "hours"),
-  Transpiration_Rate_20 = Lysimetry_Super_Update$Transpiration_rate_07_18_07_20,
+  Interval_20 = "07/20 - 07/24", # Add a label for the second time interval
+  Weight_Diff_20 = Lysimetry_Super_Update$Weight_diff_07_20_07_24,
+  Time_Diff_20 = as.numeric(Lysimetry_Super_Update$Time_diff_07_20_07_24, units = "hours"),
+  Transpiration_Rate_20 = Lysimetry_Super_Update$Transpiration_rate_07_20_07_24,
   
-  Interval_21 = "07/20 - 07/24", # Add a label for the second time interval
-  Weight_Diff_21 = Lysimetry_Super_Update$Weight_diff_07_20_07_24,
-  Time_Diff_21 = as.numeric(Lysimetry_Super_Update$Time_diff_07_20_07_24, units = "hours"),
-  Transpiration_Rate_21 = Lysimetry_Super_Update$Transpiration_rate_07_20_07_24,
+  Interval_21 = "07/24 - 07/25", # Add a label for the second time interval
+  Weight_Diff_21 = Lysimetry_Super_Update$Weight_diff_07_24_07_25,
+  Time_Diff_21 = as.numeric(Lysimetry_Super_Update$Time_diff_07_24_07_25, units = "hours"),
+  Transpiration_Rate_21 = Lysimetry_Super_Update$Transpiration_rate_07_24_07_25,
   
-  Interval_22 = "07/24 - 07/25", # Add a label for the second time interval
-  Weight_Diff_22 = Lysimetry_Super_Update$Weight_diff_07_24_07_25,
-  Time_Diff_22 = as.numeric(Lysimetry_Super_Update$Time_diff_07_24_07_25, units = "hours"),
-  Transpiration_Rate_22 = Lysimetry_Super_Update$Transpiration_rate_07_24_07_25,
+  Interval_22 = "07/25 - 07/26", # Add a label for the second time interval
+  Weight_Diff_22 = Lysimetry_Super_Update$Weight_diff_07_25_07_26,
+  Time_Diff_22 = as.numeric(Lysimetry_Super_Update$Time_diff_07_25_07_26, units = "hours"),
+  Transpiration_Rate_22 = Lysimetry_Super_Update$Transpiration_rate_07_25_07_26,
   
-  Interval_23 = "07/25 - 07/26", # Add a label for the second time interval
-  Weight_Diff_23 = Lysimetry_Super_Update$Weight_diff_07_25_07_26,
-  Time_Diff_23 = as.numeric(Lysimetry_Super_Update$Time_diff_07_25_07_26, units = "hours"),
-  Transpiration_Rate_23 = Lysimetry_Super_Update$Transpiration_rate_07_25_07_26,
+  Interval_23 = "07/24 - 07/27", # Add a label for the second time interval
+  Weight_Diff_23 = Lysimetry_Super_Update$Weight_diff_07_24_07_27,
+  Time_Diff_23 = as.numeric(Lysimetry_Super_Update$Time_diff_07_24_07_27, units = "hours"),
+  Transpiration_Rate_23 = Lysimetry_Super_Update$Transpiration_rate_07_24_07_27,
   
-  Interval_24 = "07/24 - 07/27", # Add a label for the second time interval
-  Weight_Diff_24 = Lysimetry_Super_Update$Weight_diff_07_24_07_27,
-  Time_Diff_24 = as.numeric(Lysimetry_Super_Update$Time_diff_07_24_07_27, units = "hours"),
-  Transpiration_Rate_24 = Lysimetry_Super_Update$Transpiration_rate_07_24_07_27,
+  Interval_24 = "07/27 - 07/31", # Add a label for the second time interval
+  Weight_Diff_24 = Lysimetry_Super_Update$Weight_diff_07_27_07_31,
+  Time_Diff_24 = as.numeric(Lysimetry_Super_Update$Time_diff_07_27_07_31, units = "hours"),
+  Transpiration_Rate_24 = Lysimetry_Super_Update$Transpiration_rate_07_27_07_31,
   
-  Interval_25 = "07/27 - 07/31", # Add a label for the second time interval
-  Weight_Diff_25 = Lysimetry_Super_Update$Weight_diff_07_27_07_31,
-  Time_Diff_25 = as.numeric(Lysimetry_Super_Update$Time_diff_07_27_07_31, units = "hours"),
-  Transpiration_Rate_25 = Lysimetry_Super_Update$Transpiration_rate_07_27_07_31,
+  Interval_25 = "07/31 - 08/01", # Add a label for the second time interval
+  Weight_Diff_25 = Lysimetry_Super_Update$Weight_diff_07_31_08_01,
+  Time_Diff_25 = as.numeric(Lysimetry_Super_Update$Time_diff_07_31_08_01, units = "hours"),
+  Transpiration_Rate_25 = Lysimetry_Super_Update$Transpiration_rate_07_31_08_01,
   
-  Interval_26 = "07/31 - 08/01", # Add a label for the second time interval
-  Weight_Diff_26 = Lysimetry_Super_Update$Weight_diff_07_31_08_01,
-  Time_Diff_26 = as.numeric(Lysimetry_Super_Update$Time_diff_07_31_08_01, units = "hours"),
-  Transpiration_Rate_26 = Lysimetry_Super_Update$Transpiration_rate_07_31_08_01,
+  Interval_26 = "08/01 - 08/02", # Add a label for the second time interval
+  Weight_Diff_26 = Lysimetry_Super_Update$Weight_diff_08_01_08_02,
+  Time_Diff_26 = as.numeric(Lysimetry_Super_Update$Time_diff_08_01_08_02, units = "hours"),
+  Transpiration_Rate_26 = Lysimetry_Super_Update$Transpiration_rate_08_01_08_02,
   
-  Interval_27 = "08/01 - 08/02", # Add a label for the second time interval
-  Weight_Diff_27 = Lysimetry_Super_Update$Weight_diff_08_01_08_02,
-  Time_Diff_27 = as.numeric(Lysimetry_Super_Update$Time_diff_08_01_08_02, units = "hours"),
-  Transpiration_Rate_27 = Lysimetry_Super_Update$Transpiration_rate_08_01_08_02,
+  Interval_27 = "08/01 - 08/03", # Add a label for the second time interval
+  Weight_Diff_27 = Lysimetry_Super_Update$Weight_diff_08_01_08_03,
+  Time_Diff_27 = as.numeric(Lysimetry_Super_Update$Time_diff_08_01_08_03, units = "hours"),
+  Transpiration_Rate_27 = Lysimetry_Super_Update$Transpiration_rate_08_01_08_03,
   
-  Interval_28 = "08/01 - 08/03", # Add a label for the second time interval
-  Weight_Diff_28 = Lysimetry_Super_Update$Weight_diff_08_01_08_03,
-  Time_Diff_28 = as.numeric(Lysimetry_Super_Update$Time_diff_08_01_08_03, units = "hours"),
-  Transpiration_Rate_28 = Lysimetry_Super_Update$Transpiration_rate_08_01_08_03,
+  Interval_28 = "08/03 - 08/07", # Add a label for the second time interval
+  Weight_Diff_28 = Lysimetry_Super_Update$Weight_diff_08_03_08_07,
+  Time_Diff_28 = as.numeric(Lysimetry_Super_Update$Time_diff_08_03_08_07, units = "hours"),
+  Transpiration_Rate_28 = Lysimetry_Super_Update$Transpiration_rate_08_03_08_07,
   
-  Interval_29 = "08/03 - 08/07", # Add a label for the second time interval
-  Weight_Diff_29 = Lysimetry_Super_Update$Weight_diff_08_03_08_07,
-  Time_Diff_29 = as.numeric(Lysimetry_Super_Update$Time_diff_08_03_08_07, units = "hours"),
-  Transpiration_Rate_29 = Lysimetry_Super_Update$Transpiration_rate_08_03_08_07,
+  Interval_29 = "08/07 - 08/08", # Add a label for the second time interval
+  Weight_Diff_29 = Lysimetry_Super_Update$Weight_diff_08_07_08_08,
+  Time_Diff_29 = as.numeric(Lysimetry_Super_Update$Time_diff_08_07_08_08, units = "hours"),
+  Transpiration_Rate_29 = Lysimetry_Super_Update$Transpiration_rate_08_07_08_08,
   
-  Interval_30 = "08/07 - 08/08", # Add a label for the second time interval
-  Weight_Diff_30 = Lysimetry_Super_Update$Weight_diff_08_07_08_08,
-  Time_Diff_30 = as.numeric(Lysimetry_Super_Update$Time_diff_08_07_08_08, units = "hours"),
-  Transpiration_Rate_30 = Lysimetry_Super_Update$Transpiration_rate_08_07_08_08,
+  Interval_30 = "08/08 - 08/09", # Add a label for the second time interval
+  Weight_Diff_30 = Lysimetry_Super_Update$Weight_diff_08_08_08_09,
+  Time_Diff_30 = as.numeric(Lysimetry_Super_Update$Time_diff_08_08_08_09, units = "hours"),
+  Transpiration_Rate_30 = Lysimetry_Super_Update$Transpiration_rate_08_08_08_09,
   
-  Interval_31 = "08/08 - 08/09", # Add a label for the second time interval
-  Weight_Diff_31 = Lysimetry_Super_Update$Weight_diff_08_08_08_09,
-  Time_Diff_31 = as.numeric(Lysimetry_Super_Update$Time_diff_08_08_08_09, units = "hours"),
-  Transpiration_Rate_31 = Lysimetry_Super_Update$Transpiration_rate_08_08_08_09,
+  Interval_31 = "08/07 - 08/10", # Add a label for the second time interval
+  Weight_Diff_31 = Lysimetry_Super_Update$Weight_diff_08_07_08_10,
+  Time_Diff_31 = as.numeric(Lysimetry_Super_Update$Time_diff_08_07_08_10, units = "hours"),
+  Transpiration_Rate_31 = Lysimetry_Super_Update$Transpiration_rate_08_07_08_10,
   
-  Interval_32 = "08/07 - 08/10", # Add a label for the second time interval
-  Weight_Diff_32 = Lysimetry_Super_Update$Weight_diff_08_07_08_10,
-  Time_Diff_32 = as.numeric(Lysimetry_Super_Update$Time_diff_08_07_08_10, units = "hours"),
-  Transpiration_Rate_32 = Lysimetry_Super_Update$Transpiration_rate_08_07_08_10,
+  Interval_32 = "08/10 - 08/14", # Add a label for the second time interval
+  Weight_Diff_32 = Lysimetry_Super_Update$Weight_diff_08_10_08_14,
+  Time_Diff_32 = as.numeric(Lysimetry_Super_Update$Time_diff_08_10_08_14, units = "hours"),
+  Transpiration_Rate_32 = Lysimetry_Super_Update$Transpiration_rate_08_10_08_14,
   
-  Interval_33 = "08/10 - 08/14", # Add a label for the second time interval
-  Weight_Diff_33 = Lysimetry_Super_Update$Weight_diff_08_10_08_14,
-  Time_Diff_33 = as.numeric(Lysimetry_Super_Update$Time_diff_08_10_08_14, units = "hours"),
-  Transpiration_Rate_33 = Lysimetry_Super_Update$Transpiration_rate_08_10_08_14,
+  Interval_33 = "08/14 - 08/15", # Add a label for the second time interval
+  Weight_Diff_33 = Lysimetry_Super_Update$Weight_diff_08_14_08_15,
+  Time_Diff_33 = as.numeric(Lysimetry_Super_Update$Time_diff_08_14_08_15, units = "hours"),
+  Transpiration_Rate_33 = Lysimetry_Super_Update$Transpiration_rate_08_14_08_15,
   
-  Interval_34 = "08/14 - 08/15", # Add a label for the second time interval
-  Weight_Diff_34 = Lysimetry_Super_Update$Weight_diff_08_14_08_15,
-  Time_Diff_34 = as.numeric(Lysimetry_Super_Update$Time_diff_08_14_08_15, units = "hours"),
-  Transpiration_Rate_34 = Lysimetry_Super_Update$Transpiration_rate_08_14_08_15,
-  
-  Interval_35 = "08/15 - 08/16", # Add a label for the second time interval
-  Weight_Diff_35 = Lysimetry_Super_Update$Weight_diff_08_15_08_16,
-  Time_Diff_35 = as.numeric(Lysimetry_Super_Update$Time_diff_08_15_08_16, units = "hours"),
-  Transpiration_Rate_35 = Lysimetry_Super_Update$Transpiration_rate_08_15_08_16
+  Interval_34 = "08/15 - 08/16", # Add a label for the second time interval
+  Weight_Diff_34 = Lysimetry_Super_Update$Weight_diff_08_15_08_16,
+  Time_Diff_34 = as.numeric(Lysimetry_Super_Update$Time_diff_08_15_08_16, units = "hours"),
+  Transpiration_Rate_34 = Lysimetry_Super_Update$Transpiration_rate_08_15_08_16
 )
 
-# Manually saved the transpiration rate columns on a new Excel sheet for ease 
-transpiration_rates <- read_xlsx("Lysimetry+Info.xlsx", sheet = "Transpiration Rates")
+#### Saving data onto csv format ####
+Lysimetry_Info <- "Lysimetry+Info.xlsx"
+Harvest_Days <- "Harvest Days"
+Days_Measured <- "Days Measured"
 
+# Read the sheets into R
+harvest_days <- read_excel("Lysimetry+Info.xlsx", sheet = "Harvest Days")
+
+days_measured <- read_excel("Lysimetry+Info.xlsx", sheet = "Days Measured")
+
+# Save sheets as a CSV file
+write.csv(harvest_days, "Harvest_Days.csv", row.names = FALSE)
+
+write.csv(days_measured, "Days_Measured.csv", row.names = FALSE)
+
+
+#### Saving lysimetry info into a final dataframe ####
+harvest_days <- read_csv("harvest_days.csv") %>%
+  select(ID, HarvestDate, Day0)  # Keep only relevant columns
+
+# Load the days_measured dataset and clean it
+days_measured <- read_csv("days_measured.csv") %>%
+  rename(Transpiration_Rate_Column = `Transpiration Rate Column`) %>%
+  mutate(Transpiration_Rate_Column = str_trim(as.character(Transpiration_Rate_Column))) 
+
+# Extract only 'Transpiration_Rate_#' columns from Lysimetry_calculated
+transpiration_columns <- grep("^Transpiration_Rate_\\d+$", colnames(Lysimetry_calculated), value = TRUE)
+
+# Subset Lysimetry_calculated to include only the relevant columns
+Lysimetry_subset <- Lysimetry_calculated %>%
+  select(ID, all_of(transpiration_columns))
+
+# Convert Lysimetry data from wide to long format
+Lysimetry_long <- Lysimetry_subset %>%
+  pivot_longer(cols = starts_with("Transpiration_Rate_"),  
+               names_to = "Transpiration_Rate_Column",  
+               values_to = "Transpiration_Rate_Value") %>%
+  mutate(Transpiration_Rate_Column = str_replace(Transpiration_Rate_Column, "Transpiration_Rate_", "")) %>%  # Remove prefix
+  mutate(Transpiration_Rate_Column = paste0("Transpiration_Rate_", Transpiration_Rate_Column))  # Add prefix back for consistency
+
+# Merge Lysimetry data with days_measured and harvest_days in one step
+lysimetry_data_for_analysis <- Lysimetry_long %>%
+  left_join(days_measured, by = "Transpiration_Rate_Column") %>%
+  left_join(harvest_days, by = "ID")  # Merge by 'ID'
+
+# If dates are in YYYY-MM-DD format, parse them using ymd() from lubridate
+lysimetry_data_for_analysis <- lysimetry_data_for_analysis %>%
+  mutate(Dates = ymd(Dates))  # ymd() handles YYYY-MM-DD format
+
+# Convert Dates to MM/DD/YY format
+lysimetry_data_for_analysis <- lysimetry_data_for_analysis %>%
+  mutate(Dates = format(Dates, "%m/%d/%y"))
+
+# Filter the data based on matching Dates with either HarvestDate or Day0
+lysimetry_data_for_analysis <- lysimetry_data_for_analysis %>%
+  filter(Dates == HarvestDate | Dates == Day0)
+
+# Merge the 'lysimetry_data_for_analysis' with 'treatments' to add 'Treatment' and 'Species' columns
+lysimetry_data_for_analysis <- lysimetry_data_for_analysis %>%
+  left_join(treatments, by = "ID")
+
+# Save the final dataset
+write_csv(lysimetry_data_for_analysis, "lysimetry_data_for_analysis.csv")
+
+
+# Create dataset for Harvest Date Transpiration
+harvest_transpiration <- lysimetry_data_for_analysis %>%
+  filter(Dates == HarvestDate) %>%
+  select(ID, Species, Treatment, HarvestDateTranspiration = Transpiration_Rate_Value)
+
+# Create dataset for Day 0 Transpiration
+day0_transpiration <- lysimetry_data_for_analysis %>%
+  filter(Dates == Day0) %>%
+  select(ID, Species, Treatment, Day0Transpiration = Transpiration_Rate_Value)
 
 
 

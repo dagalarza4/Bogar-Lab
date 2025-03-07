@@ -104,6 +104,17 @@ print(plot_day6_2)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 #Only Drought Graph
 # Graph
 species_colors <- c(
