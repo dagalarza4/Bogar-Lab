@@ -4,6 +4,7 @@ library(readxl)
 library(readr)
 library(dplyr)
 library(forcats)
+library(cowplot)
 
 #### Open Datasets and Extra ####
 
@@ -395,6 +396,8 @@ combined_plot <- plot_day0 / plot_day6_2
 
 # Display the combined plot
 print(combined_plot)
+
+save_plot("Transpiration_rate_figure.pdf", combined_plot, base_height = 6, base_aspect_ratio = 1)
 
 
 
