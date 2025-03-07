@@ -79,6 +79,9 @@ combined_perccol_biomass_graph <- perccol_graph / total_dry_biomass_graph
 # Display the combined plot
 print(combined_perccol_biomass_graph)
 
+save_plot("Colonization_biomass_figure.pdf", combined_perccol_biomass_graph, base_height = 6, base_aspect_ratio = 1)
+
+
 
 # ###### SKIP THIS #####
 # #### Difference in Transpiration During Drought ####
