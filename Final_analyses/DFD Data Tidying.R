@@ -808,5 +808,5 @@ day0_transpiration <- lysimetry_data_for_analysis %>%
   filter(Dates == Day0) %>%
   select(ID, Species, Treatment, Day0Transpiration = Transpiration_Rate_Value)
 
-
-
+# Merge the two data frames together
+TranspirationRates <- left_join(day0_transpiration, harvest_transpiration, by = c("ID", "Species", "Treatment"))

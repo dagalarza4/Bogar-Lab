@@ -83,113 +83,69 @@ save_plot("Colonization_biomass_figure.pdf", combined_perccol_biomass_graph, bas
 
 
 
-# ###### SKIP THIS #####
-# #### Difference in Transpiration During Drought ####
-# 
-# # Data conversion for Day0 and HarvestDate
-# lysimetry_data$Day0 <- as.Date(lysimetry_data$Day0, format = "%m/%d/%y")
-# lysimetry_data$HarvestDate <- as.Date(lysimetry_data$HarvestDate, format = "%m/%d/%y")
-# 
-# # Merging the data (we assume 'lysimetry_data' already contains all the necessary columns, so no need for a separate merge)
-# difference_data <- lysimetry_data %>%
-#   filter(!is.na(Day0) & !is.na(HarvestDate))  # Remove rows with NA for Day0 or HarvestDate
-# 
-# # Group-by Operations to calculate the transpiration differences
-# difference_data <- difference_data %>%
-#   group_by(ID) %>%
-#   mutate(
-#     Transpiration_at_Day0 = Transpiration_Rate_Value[Dates == Day0],
-#     Transpiration_at_Harvest = Transpiration_Rate_Value[Dates == HarvestDate],
-#     Difference_g_hr = Transpiration_at_Harvest - Transpiration_at_Day0
-#   ) %>%
-#   ungroup()
-# 
-# # Create a new factor variable combining Species and Treatment for the x-axis
-# difference_data$Species_Treatment <- factor(paste(difference_data$Species, difference_data$Treatment, sep = "_"),
-#                                             levels = c("NM_control", "NM_drought",
-#                                                        "SP_control", "SP_drought",
-#                                                        "RP_control", "RP_drought",
-#                                                        "TC_control", "TC_drought",
-#                                                        "S+T_control", "S+T_drought",
-#                                                        "R+S_control", "R+S_drought"))
-# 
-# # Function to lighten a color
-# adjust_color <- function(col, factor = 0.2, lighten = TRUE) {
-#   col_rgb <- col2rgb(col)
-#   if (lighten) {
-#     # Blend the color with white to lighten it
-#     white_rgb <- c(255, 255, 255)
-#     blended_rgb <- (1 - factor) * col_rgb + factor * white_rgb
-#   } else {
-#     # Return the original color if not lightening
-#     blended_rgb <- col_rgb
-#   }
-#   rgb(blended_rgb[1], blended_rgb[2], blended_rgb[3], maxColorValue = 255)
-# }
-# 
-# # Apply lightened colors for drought plants only
-# lightened_colors <- sapply(species_colors, function(col) adjust_color(col, factor = 0.4, lighten = TRUE))
-# 
-# # Keep control colors the same as original
-# control_colors <- species_colors
-# 
-# # Combine control and lightened drought colors
-# adjusted_colors <- c(
-#   setNames(control_colors, paste(names(species_colors), "control", sep = "_")),
-#   setNames(lightened_colors, paste(names(species_colors), "drought", sep = "_"))
-# )
-# 
-# # Graph
-# plot_day6_2 <- ggplot(difference_data %>% filter(!is.na(Transpiration_at_Harvest)), aes(x = Species_Treatment, y = Difference_g_hr)) +
-#   # Create boxplots without outliers
-#   geom_boxplot(
-#     aes(fill = Species_Treatment, linetype = Treatment),  # Fill by combined Species and Treatment
-#     outlier.shape = NA,  # Boxplot without outlier points
-#     position = position_dodge(0.8)  # Adjust boxplots position for dodging
-#   ) + 
-#   # Add jittered points to align them with the boxplot (dodging them within the species_treatment)
-#   geom_point(
-#     aes(color = Species_Treatment),  # Align points with the Species_Treatment
-#     position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8),  # Jitter and dodge to align points with boxplots
-#     size = 2,  # Adjust point size as needed
-#     alpha = 0.7  # Adjust point transparency
-#   ) +
-#   # Custom colors for species and treatments
-#   scale_fill_manual(
-#     values = adjusted_colors,  # Use the adjusted species colors for fills
-#     guide = "none"  # Remove the species color legend
-#   ) + 
-#   scale_color_manual(
-#     values = adjusted_colors  # Ensure the dots follow the same color scheme
-#   ) + 
-#   scale_linetype_manual(
-#     values = c("solid", "dashed"),  # Solid for control, dashed for drought
-#     labels = c("Control", "Drought"),  # Custom linetype labels
-#     name = "Treatment"  # Title for the linetype legend
-#   ) + 
-#   # Set x-axis limits to control the species order
-#   scale_x_discrete(
-#     limits = c("NM_control", "NM_drought", "SP_control", "SP_drought", 
-#                "RP_control", "RP_drought", "TC_control", "TC_drought", 
-#                "S+T_control", "S+T_drought", "R+S_control", "R+S_drought")  # Species_Treatment order
-#   ) +  
-#   scale_y_continuous(limits = c(-0.25, 0.25)) +  # Set y-axis limits from -0.25 to 0.25
-#   labs(
-#     title = "Difference in Transpiration Rates Throughout Drought",
-#     x = "Species_Treatment",
-#     y = "Difference in Transpiration Rate (g/hr)"
-#   ) + 
-#   theme_minimal() + 
-#   theme(
-#     text = element_text(size = 14),
-#     legend.position = "bottom"  # Move the legend to the bottom
-#   )
-# 
-# # Display the plot
-# print(plot_day6_2)
-# ###### END SKIP THIS #####
+ #### Difference in Transpiration During Drought ####
+ 
+# Calculate the difference in transpiration rates
+TranspirationRates <- TranspirationRates %>%
+  mutate(Difference_g_hr = HarvestDateTranspiration - Day0Transpiration)
 
+# Function to lighten a color
+adjust_color <- function(col, factor = 0.4, lighten = TRUE) {
+  col_rgb <- col2rgb(col)
+  if (lighten) {
+    white_rgb <- c(255, 255, 255)
+    blended_rgb <- (1 - factor) * col_rgb + factor * white_rgb
+  } else {
+    blended_rgb <- col_rgb
+  }
+  rgb(blended_rgb[1], blended_rgb[2], blended_rgb[3], maxColorValue = 255)
+}
 
+# Apply lightened colors for drought treatments
+lightened_colors <- sapply(species_colors, function(col) adjust_color(col, factor = 0.4, lighten = TRUE))
+
+# Assign colors for control and drought treatments
+control_colors <- species_colors
+adjusted_colors <- c(
+  setNames(control_colors, paste0(names(species_colors), "_control")),
+  setNames(lightened_colors, paste0(names(species_colors), "_drought"))
+)
+
+# Create a new column for exact matching of species and treatment
+TranspirationRates <- TranspirationRates %>%
+  mutate(Species_Treatment = paste0(Species, "_", Treatment))
+
+# Convert species to a factor for proper x-axis grouping
+TranspirationRates$Species <- factor(TranspirationRates$Species, 
+                                     levels = c("NM", "SP", "RP", "TC", "S+T", "R+S"))
+
+# Graph
+plot_day6_2 <- ggplot(TranspirationRates %>% filter(!is.na(HarvestDateTranspiration)), 
+                      aes(x = Species, y = Difference_g_hr, linetype = Treatment)) +
+  # Create boxplots without outliers
+  geom_boxplot(aes(fill = Species_Treatment), outlier.shape = NA, 
+               position = position_dodge(0.8)) +  
+  # Add jittered black points
+  geom_point(color = "black", 
+             position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8), 
+             size = 2, alpha = 0.7) +
+  # Custom color scales for boxplots
+  scale_fill_manual(values = adjusted_colors, guide = "none") +  
+  # Treatment legend (solid = control, dashed = drought)
+  scale_linetype_manual(values = c("solid", "dashed"), labels = c("Control", "Drought"), 
+                        name = "Treatment") +
+  scale_x_discrete(labels = c("NM" = "NM", "SP" = "SP", "RP" = "RP", 
+                              "TC" = "TC", "S+T" = "S+T", "R+S" = "R+S")) +  
+  scale_y_continuous(limits = c(-0.25, 0.25)) +  
+  labs(title = "Difference in Transpiration Rates Throughout Drought",
+       x = "Fungal Species",
+       y = "Difference in Transpiration Rate (g/hr)") +  
+  theme_minimal() +  
+  theme(text = element_text(size = 14), legend.position = "bottom")
+
+print(plot_day6_2)
+
+save_plot("Transpiration_difference_figure.pdf", plot_day6_2, base_height = 6, base_aspect_ratio = 2)
 
 #### Supplemental Graphs ####
 

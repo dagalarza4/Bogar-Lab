@@ -41,30 +41,61 @@ summary(Colonization_by_biomass_simplified)
 TukeyHSD(Colonization_by_biomass)
 TukeyHSD(Colonization_by_biomass_simplified)
 
-# Figure 2: Difference in Transpiration During Drought
 
-# Merge datasets to align transpiration rates by ID
-combined_transpiration <- day0_transpiration %>%
-  inner_join(harvest_transpiration, by = c("ID", "Species", "Treatment"))
 
-# Reshape to long format for paired comparison
-long_data_2 <- combined_transpiration %>%
-  pivot_longer(cols = c(Day0Transpiration, HarvestDateTranspiration),
-               names_to = "Timepoint",
-               values_to = "Transpiration_Rate") %>%
-  mutate(Timepoint = factor(Timepoint, levels = c("Day0Transpiration", "HarvestDateTranspiration")))
+# Figure 2: Difference in Transpiration During Drought by Species (not significant)
+Trans_Difference_by_Species <- aov(`Difference_g_hr` ~ Species, data = TranspirationRates) 
+summary(Trans_Difference_by_Species)
 
-# Difference between Day0 and HarvestDate transpiration rates
-anova_day0_vs_harvest_simple <- aov(Transpiration_Rate ~ Timepoint, data = long_data_2)
-summary(anova_day0_vs_harvest_simple)
+TukeyHSD(Trans_Difference_by_Species)
 
-# Day0 transpiration rates by species
-anova_day0_species <- aov(Day0Transpiration ~ Species, data = day0_transpiration)
-summary(anova_day0_species)
+#Figure 2: Difference in Transpiration During Drought by Treatment (Significant)
+Trans_Difference_by_Treatment <- aov(`Difference_g_hr` ~ Treatment, data = TranspirationRates) 
+summary(Trans_Difference_by_Treatment)
 
-# HarvestDate transpiration rates by species
-anova_harvest_species <- aov(HarvestDateTranspiration ~ Species, data = harvest_transpiration)
-summary(anova_harvest_species)
+TukeyHSD(Trans_Difference_by_Treatment)
+
+#Figure 2: Difference in Transpiration During Drought by Species and Treatment (not significant)
+Trans_Difference_by_ST <- aov(`Difference_g_hr` ~ Species * Treatment, data = TranspirationRates) 
+summary(Trans_Difference_by_ST)
+
+TukeyHSD(Trans_Difference_by_ST)
+
+# Figure 2: Day 0 Transpiration During Drought by Species (not significant)
+Day0_by_Species <- aov(`Day0Transpiration` ~ Species, data = TranspirationRates) 
+summary(Day0_by_Species)
+
+TukeyHSD(Day0_by_Species)
+
+#Figure 2: Day0 Transpiration During Drought by Treatment (Significant)
+Day0_by_Treatment <- aov(`Day0Transpiration` ~ Treatment, data = TranspirationRates) 
+summary(Day0_by_Treatment)
+
+TukeyHSD(Day0_by_Treatment)
+
+#Figure 2: Day 0 Transpiration During Drought by Species and Treatment (not significant)
+Day0_by_ST <- aov(`Day0Transpiration` ~ Species * Treatment, data = TranspirationRates) 
+summary(Day0_by_ST)
+
+# Figure 2: Day 6 Transpiration During Drought by Species (not significant)
+Day6_by_Species <- aov(`HarvestDateTranspiration` ~ Species, data = TranspirationRates) 
+summary(Day6_by_Species)
+
+TukeyHSD(Day6_by_Species)
+
+#Figure 2: Day 6 Transpiration During Drought by Treatment (Significant)
+Day6_by_Treatment <- aov(`HarvestDateTranspiration` ~ Treatment, data = TranspirationRates) 
+summary(Day6_by_Treatment)
+
+TukeyHSD(Day6_by_Treatment)
+
+#Figure 2: Day 6 Transpiration During Drought by Species and Treatment (not significant)
+Day6_by_ST <- aov(`HarvestDateTranspiration` ~ Species * Treatment, data = TranspirationRates) 
+summary(Day6_by_ST)
+
+
+
+#NOT THE SAME NEED TO DO DIFFERENCES
 
 
 #### Supplemental ####
