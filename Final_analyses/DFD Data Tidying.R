@@ -19,6 +19,14 @@ Harvest_Data_LB = Harvest_Data %>% mutate(total_dry_mass = Shoot_DW + Root_DW)
 # Change Percent Colonization to 100% max
 Harvest_Data_LB$perccol = (Harvest_Data_LB$`%_colonization` / 100) / ((Harvest_Data_LB$`%_colonization` / 100) + 1) * 100
 
+# Add Species_Type column with NM as 'None'
+Harvest_Data_LB <- Harvest_Data_LB %>%
+  mutate(Species_Type = case_when(
+    Species == "NM" ~ "None",
+    Species %in% c("R+S", "S+T") ~ "Double",
+    TRUE ~ "Single"
+  ))
+
 save(Harvest_Data_LB, file = "Harvest_Data_LB.RData")
 
 
@@ -810,3 +818,19 @@ day0_transpiration <- lysimetry_data_for_analysis %>%
 
 # Merge the two data frames together
 TranspirationRates <- left_join(day0_transpiration, harvest_transpiration, by = c("ID", "Species", "Treatment"))
+
+library(dplyr)
+
+
+# Add Species_Type column with NM as 'None'
+TranspirationRates <- TranspirationRates %>%
+  mutate(Species_Type = case_when(
+    Species == "NM" ~ "None",
+    Species %in% c("R+S", "S+T") ~ "Double",
+    TRUE ~ "Single"
+  ))
+
+# Save the final dataset
+write_csv(TranspirationRates, "TranspirationRates.csv")
+
+

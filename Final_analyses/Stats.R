@@ -12,12 +12,21 @@ summary(Perccol_by_Species)
 
 TukeyHSD(Perccol_by_Species)
 
+# Figure 1, Panel A:Percent Colonization by Species Type (Significant)
+Perccol_by_Species_T <- aov(perccol ~ Species_Type, data = Harvest_Data_LB %>% 
+                              filter(Species_Type %in% c("Single", "Double")))
+summary(Perccol_by_Species_T)
+
 # Figure 1, Panel B: Total Dry Biomass by Species (not significant, but RP plants were a bit smaller than R+S and other)
 totalmassanova = aov(total_dry_mass ~ Species, data = Harvest_Data_LB)
 summary(totalmassanova)
-TukeyHSD(totalmassanova)
 
 TukeyHSD(totalmassanova)
+
+# Figure 1, Panel B: Total Dry Biomass by Species Type (Significant)
+totalmassanova_SpT <- aov(total_dry_mass ~ Species_Type, data = Harvest_Data_LB %>% 
+                              filter(Species_Type %in% c("Single", "Double")))
+summary(totalmassanova_SpT)
 
 #Total Dry Biomass by Treatment (not significant)
 totalmassanovabytreatment = aov(total_dry_mass ~ Treatment, data = Harvest_Data_LB)
@@ -49,6 +58,11 @@ summary(Trans_Difference_by_Species)
 
 TukeyHSD(Trans_Difference_by_Species)
 
+# Figure 2: Difference in Transpiration During Drought by Species Type (not significant)
+Trans_Difference_by_Species_T <- aov(`Difference_g_hr` ~ Species_Type, data = TranspirationRates %>% 
+  filter(Species_Type %in% c("Single", "Double")))
+summary(Trans_Difference_by_Species_T)
+
 #Figure 2: Difference in Transpiration During Drought by Treatment (Significant)
 Trans_Difference_by_Treatment <- aov(`Difference_g_hr` ~ Treatment, data = TranspirationRates) 
 summary(Trans_Difference_by_Treatment)
@@ -67,6 +81,11 @@ summary(Day0_by_Species)
 
 TukeyHSD(Day0_by_Species)
 
+# Figure 2: Day 0 Transpiration During Drought by Species Type (not significant)
+Day0_by_Species_T <- aov(`Day0Transpiration` ~ Species, data = TranspirationRates %>% 
+                           filter(Species_Type %in% c("Single", "Double")))
+summary(Day0_by_Species_T)
+
 #Figure 2: Day0 Transpiration During Drought by Treatment (Significant)
 Day0_by_Treatment <- aov(`Day0Transpiration` ~ Treatment, data = TranspirationRates) 
 summary(Day0_by_Treatment)
@@ -83,6 +102,11 @@ summary(Day6_by_Species)
 
 TukeyHSD(Day6_by_Species)
 
+# Figure 2: Day 6 Transpiration During Drought by Species Type (not significant)
+Day6_by_Species_T <- aov(`HarvestDateTranspiration` ~ Species, data = TranspirationRates %>% 
+                           filter(Species_Type %in% c("Single", "Double")))
+summary(Day6_by_Species_T)
+
 #Figure 2: Day 6 Transpiration During Drought by Treatment (Significant)
 Day6_by_Treatment <- aov(`HarvestDateTranspiration` ~ Treatment, data = TranspirationRates) 
 summary(Day6_by_Treatment)
@@ -94,8 +118,6 @@ Day6_by_ST <- aov(`HarvestDateTranspiration` ~ Species * Treatment, data = Trans
 summary(Day6_by_ST)
 
 
-
-#NOT THE SAME NEED TO DO DIFFERENCES
 
 
 #### Supplemental ####
